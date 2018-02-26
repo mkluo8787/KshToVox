@@ -42,5 +42,9 @@
     <Compile Include="Song.cs" />
     <Compile Include="SongList.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

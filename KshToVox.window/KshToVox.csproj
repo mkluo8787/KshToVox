@@ -79,7 +79,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\MusicDB\SongList.csproj">
+    <ProjectReference Include="..\SongList\SongList.csproj">
       <Project>{8ea42a3b-39ac-4347-a930-d6f7a7b28576}</Project>
       <Name>SongList</Name>
     </ProjectReference>

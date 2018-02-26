@@ -1,11 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26730.16
+VisualStudioVersion = 15.0.27130.2036
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KshToVox", "KshToVox.window\KshToVox.csproj", "{4257273C-BEB2-4B78-A703-A2EE169D836B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SongList", "MusicDB\SongList.csproj", "{8EA42A3B-39AC-4347-A930-D6F7A7B28576}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SongList", "SongList\SongList.csproj", "{8EA42A3B-39AC-4347-A930-D6F7A7B28576}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
