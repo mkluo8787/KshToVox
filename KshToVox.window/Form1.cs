@@ -8,6 +8,10 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
+using System.IO;
+
+using SongList;
+
 namespace KshToVox.window
 {
 	public partial class Form : System.Windows.Forms.Form
@@ -17,14 +21,30 @@ namespace KshToVox.window
 			InitializeComponent();
 		}
 
+		private void UpdateView()
+		{
+			Console.WriteLine("View Update!");
+			SongListTextBox.DataSource = null;
+			SongListTextBox.DataSource = Program.GetSongListString();
+		}
+
 		private void loadToolStripMenuItem_Click(object sender, EventArgs e)
 		{
-			FolderBrowserDialog Dialog1 = new FolderBrowserDialog();
+			Stream myStream = null;
+			OpenFileDialog openFileDialog1 = new OpenFileDialog();
 
-			if (Dialog1.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+			openFileDialog1.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
+			openFileDialog1.FilterIndex = 2;
+			openFileDialog1.RestoreDirectory = true;
+
+			if (openFileDialog1.ShowDialog() == DialogResult.OK)
 			{
-				
+				if ((myStream = openFileDialog1.OpenFile()) != null)
+				{
+					Program.LoadSongList(myStream);	
+				}
 			}
+			UpdateView();
 		}
 	}
 }

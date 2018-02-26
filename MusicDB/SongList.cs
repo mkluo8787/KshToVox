@@ -4,19 +4,33 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MusicDB
+using System.IO;
+
+namespace SongList
 {
-	class SongList
+	public class SongList
 	{
+		public SongList() { }
+
 		// From KFC
-		public void Load() { }
+		public void Load(Stream stream)
+		{
+			test_string.Clear();
+			StreamReader reader = new StreamReader(stream);
+			while (!reader.EndOfStream)
+				test_string.Add(reader.ReadLine());
+		}
+
+		//test
+		public List<string> get_string() { return test_string; }
+		private List<string> test_string = new List<string>();
 
 		// To KFC
 		public void Save() { }
 
-		public void AddSong(Song newSong, int index = 0) { }
+		public void AddSong() { }
 		public void RemoveSong(int index) { }
 
-		private Dictionary<int, Song> songs;
+		private Dictionary<int, Song> songs = new Dictionary<int, Song>();
 	}
 }

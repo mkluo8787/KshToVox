@@ -30,9 +30,10 @@
 		{
 			this.menuStrip1 = new System.Windows.Forms.MenuStrip();
 			this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.loadToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.saveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.importkshToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.loadToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.SongListTextBox = new System.Windows.Forms.ListBox();
 			this.menuStrip1.SuspendLayout();
 			this.SuspendLayout();
 			// 
@@ -56,6 +57,13 @@
 			this.fileToolStripMenuItem.Size = new System.Drawing.Size(38, 20);
 			this.fileToolStripMenuItem.Text = "File";
 			// 
+			// loadToolStripMenuItem
+			// 
+			this.loadToolStripMenuItem.Name = "loadToolStripMenuItem";
+			this.loadToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+			this.loadToolStripMenuItem.Text = "Load...";
+			this.loadToolStripMenuItem.Click += new System.EventHandler(this.loadToolStripMenuItem_Click);
+			// 
 			// saveToolStripMenuItem
 			// 
 			this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
@@ -68,12 +76,14 @@
 			this.importkshToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
 			this.importkshToolStripMenuItem.Text = "Import .ksh...";
 			// 
-			// loadToolStripMenuItem
+			// SongListTextBox
 			// 
-			this.loadToolStripMenuItem.Name = "loadToolStripMenuItem";
-			this.loadToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-			this.loadToolStripMenuItem.Text = "Load...";
-			this.loadToolStripMenuItem.Click += new System.EventHandler(this.loadToolStripMenuItem_Click);
+			this.SongListTextBox.FormattingEnabled = true;
+			this.SongListTextBox.ItemHeight = 12;
+			this.SongListTextBox.Location = new System.Drawing.Point(31, 53);
+			this.SongListTextBox.Name = "SongListTextBox";
+			this.SongListTextBox.Size = new System.Drawing.Size(232, 244);
+			this.SongListTextBox.TabIndex = 1;
 			// 
 			// Form
 			// 
@@ -81,6 +91,7 @@
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(703, 356);
+			this.Controls.Add(this.SongListTextBox);
 			this.Controls.Add(this.menuStrip1);
 			this.Name = "Form";
 			this.Text = "KshToVox";
@@ -98,6 +109,7 @@
 		private System.Windows.Forms.ToolStripMenuItem saveToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem importkshToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem loadToolStripMenuItem;
+		private System.Windows.Forms.ListBox SongListTextBox;
 	}
 }
 

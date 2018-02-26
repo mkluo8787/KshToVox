@@ -4,6 +4,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
+using System.IO;
+
+using SongList;
+
 namespace KshToVox.window
 {
 	static class Program
@@ -16,7 +20,13 @@ namespace KshToVox.window
 		{
 			Application.EnableVisualStyles();
 			Application.SetCompatibleTextRenderingDefault(false);
-			Application.Run(new Form());
+			Application.Run(new Form());			
 		}
+
+		static SongList.SongList songList = new SongList.SongList();
+
+		public static void LoadSongList(Stream stream) { songList.Load(stream); }
+
+		public static List<string> GetSongListString() { return songList.get_string(); }
 	}
 }
