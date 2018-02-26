@@ -57,7 +57,7 @@ namespace MusicDB
 		}
 
 		// Output to .vox
-		public MemoryStream ToVox()
+		public Stream ToVox()
 		{
 			MemoryStream stream = new MemoryStream();
 			StreamWriter writer = new StreamWriter(stream);
