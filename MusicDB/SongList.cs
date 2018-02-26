@@ -8,12 +8,15 @@ namespace MusicDB
 {
 	class SongList
 	{
+		// From KFC
 		public void Load() { }
+
+		// To KFC
 		public void Save() { }
 
-		public void AddSong() { }
-		public void RemoveSong() { }
+		public void AddSong(Song newSong, int index = 0) { }
+		public void RemoveSong(int index) { }
 
-		private List<Song> _songs;
+		private Dictionary<int, Song> songs;
 	}
 }
