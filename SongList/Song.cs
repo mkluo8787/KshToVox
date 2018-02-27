@@ -23,10 +23,6 @@ namespace SongList
 			data = data_;
 			difficulty = difficulty_;
 
-			string base_name =	data["version"].PadLeft(3, '0')	+ "_" +
-								data["label"].PadLeft(4, '0')	+ "_" +
-								data["ascii"];
-
 			foreach (KeyValuePair<string, int> difInfo in difficulty)
 			{
 				if (difInfo.Value == 0) continue;
@@ -38,19 +34,46 @@ namespace SongList
 				else if (difInfo.Key == "infinite")	suffix = "_4i";
 				else throw new Exception("Difficulty name " + difInfo.Key + " invalid!");
 
-				string chartPath = kfcPath + "\\data\\others\\vox\\" + base_name + suffix + ".vox";
+				string chartPath = kfcPath + "\\data\\others\\vox\\" + BaseName() + suffix + ".vox";
 				if (!File.Exists(chartPath)) throw new FileNotFoundException();
-				FileStream stream = new FileStream(chartPath, FileMode.Open);
+				FileStream cstream = new FileStream(chartPath, FileMode.Open);
 
-				charts[difInfo.Key] = new Chart(stream);
+				charts[difInfo.Key] = new Chart(cstream);
 
-				stream.Close();
+				cstream.Close();
 			}
+
+			// .2dx to wav
+
+			string soundPath = kfcPath + "\\data\\sound\\" + BaseName() + ".2dx";
+			if (!File.Exists(soundPath)) throw new FileNotFoundException();
+			FileStream sstream = new FileStream(soundPath, FileMode.Open);
+
+			sstream.Position = 0x64;
+			sstream.CopyTo(music);
+
+			sstream.Close();
+			/*
+			string outSoundPath = kfcPath + "\\data\\sound\\" + base_name + ".wav";
+			FileStream osstream = new FileStream(outSoundPath, FileMode.Create);
+			music.WriteTo(osstream);
+
+			osstream.Close();
+			*/
 		}
 
 		public string Data(string tag) { return data[tag]; }
 
 		public int Difficulty(string tag) { return difficulty[tag]; }
+
+		public string BaseName()
+		{
+			return	data["version"].PadLeft(3, '0') + "_" +
+					data["label"].PadLeft(4, '0') + "_" +
+					data["ascii"];
+		}
+
+		public MemoryStream GetWav() { return music; }
 
 		public override string ToString()
 		{
@@ -66,6 +89,6 @@ namespace SongList
 		private Dictionary<string, Chart> charts = new Dictionary<string, Chart>();
 
 		// Music (wav ms-adpcm)
-		private Stream music;
+		private MemoryStream music = new MemoryStream();
 	}
 }

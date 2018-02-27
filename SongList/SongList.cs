@@ -87,6 +87,29 @@ namespace SongList
 				int id		= songId.Key;
 				Song song	= songId.Value;
 
+				string soundPath = kfcPath + "\\data\\sound\\" + song.BaseName() + ".2dx2";
+				FileStream osstream = new FileStream(soundPath, FileMode.Create);
+
+				BinaryWriter bw = new BinaryWriter(osstream);
+
+				bw.BaseStream.Position = 0x48;
+				bw.Write(0x0000004C);
+				bw.Write(0x39584432);
+				bw.Write(0x00000018);
+				bw.Write(0x00000000); // Will be replaced with sund length later
+				bw.Write(0xFFFF3231);
+				bw.Write(0x00010040);
+				bw.Write(0x00000000);
+				
+				song.GetWav().WriteTo(osstream);
+
+				long endPos = osstream.Position;
+				bw.BaseStream.Position = 0x54;
+				bw.Write((int)(endPos - 0x64));
+
+				osstream.Close();
+
+
 				XElement music = new XElement("music", new XAttribute("id", id));
 
 				XElement info = new XElement("info");
@@ -117,7 +140,7 @@ namespace SongList
 					difTag.Add(new XElement("illustrator", ""));
 					difTag.Add(new XElement("effected_by", ""));
 					difTag.Add(new XElement("price", new XAttribute("__type", "s32"), 9999));
-					difTag.Add(new XElement("limited", new XAttribute("__type", "s32"), 3));
+					difTag.Add(new XElement("limited", new XAttribute("__type", "u8"), 3));
 
 					difficulty.Add(difTag);
 				}
