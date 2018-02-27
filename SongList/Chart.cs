@@ -8,7 +8,7 @@ using System.IO;
 
 namespace SongList
 {
-	class Chart
+	public class Chart
 	{
 		class TimePos
 		{
