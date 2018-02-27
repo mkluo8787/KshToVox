@@ -21,3 +21,9 @@ Prompt for unsaved data.
 * the 5th line in the vol track may be the stop effect?
 
 KeyBoard ShortCuts
+
+*not all fx are supported
+
+* #fx <= 12
+
+* beat format is restricted to n/4!
