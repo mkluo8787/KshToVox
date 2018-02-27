@@ -76,8 +76,8 @@ namespace KshToVox.window
 				SetStatus("KFC song list has not loaded!");
 				return;
 			}
-			Song newSong = new Song(path);
-			songList.AddSong(newSong);
+			SetStatus("New K-Shoot song loaded.");
+			songList.AddKshSong(path);
 		}
 
 		public static void DeleteSong()
@@ -93,6 +93,8 @@ namespace KshToVox.window
 
 		public static List<KeyValuePair<int, Song>> GetSongList() {	return songList.List();	}
 
+		public static int GetSelectedIndex() { return selectedSongId; }
+
 		public static Dictionary<string, string> GetLabels()
 		{
 			int id = selectedSongId;
@@ -107,7 +109,7 @@ namespace KshToVox.window
 			return labels;
 		}
 
-		internal static void UpdateSeletedSongId(int id) { selectedSongId = id; }
+		internal static void UpdateSeletedSongId(int id) {	selectedSongId = id; }
 
 		public static string GetStatus() { return statusText; }
 

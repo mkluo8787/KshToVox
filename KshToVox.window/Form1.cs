@@ -26,6 +26,11 @@ namespace KshToVox.window
 			SongListTextBox.DataSource = null;
 			SongListTextBox.DataSource = Program.GetSongList();
 
+			UpdateViewStatic();
+		}
+
+		private void UpdateViewStatic()
+		{
 			Dictionary<string, string> labels = Program.GetLabels();
 			label_title.Text = labels["title"];
 			label_artist.Text = labels["artist"];
@@ -84,15 +89,17 @@ namespace KshToVox.window
 
 		private void SongListTextBox_SelectedValueChanged(object sender, EventArgs e)
 		{
-
+			
 			if (SongListTextBox.SelectedItem == null)
 				Program.UpdateSeletedSongId(-1);
 			else
 			{
 				KeyValuePair<int, Song> songId = (KeyValuePair<int, Song>)SongListTextBox.SelectedItem;
 				Program.UpdateSeletedSongId(songId.Key);
+				
 			}
-			UpdateView();
+
+			UpdateViewStatic();
 		}
 	}
 }

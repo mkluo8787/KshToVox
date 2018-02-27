@@ -11,7 +11,7 @@ namespace SongList
 {
 	public class SongList
 	{
-		readonly string[] DIFS = { "novice", "advanced", "exhaust", "infinite" };
+		public readonly static string[] DIFS = { "novice", "advanced", "exhaust", "infinite" };
 		public readonly static string cachePath = System.IO.Path.GetDirectoryName(
 			System.Reflection.Assembly.GetExecutingAssembly().Location
 			) + "\\cache\\";
@@ -62,7 +62,7 @@ namespace SongList
 			loaded = true;
 		}
 
-		public void AddSong(Song song)
+		public void AddKshSong(string path)
 		{
 			int newId = 0;
 			foreach (int id in Enumerable.Range(1, 1024))
@@ -73,7 +73,7 @@ namespace SongList
 				}
 			if (newId == 0) throw new Exception("Song list is full!");
 
-			songs.Add(newId, song);
+			songs[newId] = new Song(newId.ToString(), path);
 		}
 
 		public void DeleteId(int id)

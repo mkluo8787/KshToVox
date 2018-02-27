@@ -154,6 +154,7 @@
 			// 
 			// splitContainer2.Panel2
 			// 
+			this.splitContainer2.Panel2.AllowDrop = true;
 			this.splitContainer2.Panel2.Controls.Add(this.label_artist);
 			this.splitContainer2.Panel2.Controls.Add(this.label_title);
 			this.splitContainer2.Panel2.DragDrop += new System.Windows.Forms.DragEventHandler(this.splitContainer2_Panel2_DragDrop);
