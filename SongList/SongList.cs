@@ -11,12 +11,16 @@ namespace SongList
 {
 	public class SongList
 	{
+		readonly string[] DIFS = { "novice", "advanced", "exhaust", "infinite" };
+
 		public SongList() { }
 
 		// From KFC
-		public void Load(string kfcPath)
+		public void Load(string kfcPath_)
 		{
 			songs.Clear();
+
+			kfcPath = kfcPath_;
 
 			// DB backup!
 			string dbPath = kfcPath + "\\data\\others\\music_db.xml";
@@ -40,10 +44,8 @@ namespace SongList
 				// Difficulties. 0 = dummy.
 				Dictionary<string, int> difficulty = new Dictionary<string, int>();
 
-				difficulty["novice"]	= int.Parse(songXml.Element("difficulty").Element("novice")		.Element("difnum").Value);
-				difficulty["advanced"]	= int.Parse(songXml.Element("difficulty").Element("advanced")	.Element("difnum").Value);
-				difficulty["exhaust"]	= int.Parse(songXml.Element("difficulty").Element("exhaust")	.Element("difnum").Value);
-				difficulty["infinite"]	= int.Parse(songXml.Element("difficulty").Element("infinite")	.Element("difnum").Value);
+				foreach (string dif in DIFS)
+					difficulty[dif]	= int.Parse(songXml.Element("difficulty").Element(dif)		.Element("difnum").Value);
 
 				Song song = new Song(data, difficulty, kfcPath);
 				songs[id] = song;
@@ -75,7 +77,59 @@ namespace SongList
 
 
 		// To KFC
-		public void Save() { }
+		public void Save()
+		{
+			string dbPath = kfcPath + "\\data\\others\\music_db_savetest.xml";
+
+			XElement root = new XElement("mdb");
+			foreach (KeyValuePair<int, Song> songId in songs)
+			{
+				int id		= songId.Key;
+				Song song	= songId.Value;
+
+				XElement music = new XElement("music", new XAttribute("id", id));
+
+				XElement info = new XElement("info");
+
+				info.Add(new XElement("label",				song.Data("label")));
+				info.Add(new XElement("title_name",			song.Data("title")));
+				info.Add(new XElement("title_yomigana",		""));
+				info.Add(new XElement("artist_name",		song.Data("artist")));
+				info.Add(new XElement("artist_yomigana",	""));
+				info.Add(new XElement("ascii",				song.Data("ascii")));
+				info.Add(new XElement("bpm_max",			new XAttribute("__type", "u32"),	99999)); // BPM
+				info.Add(new XElement("bpm_min",			new XAttribute("__type", "u32"),	99999)); // BPM
+				info.Add(new XElement("distribution_date",	new XAttribute("__type", "u32"),	22222222));
+				info.Add(new XElement("volume",				new XAttribute("__type", "u16"),	100)); // Adjust by sox?
+				info.Add(new XElement("bg_no",				new XAttribute("__type", "u16"),	0)); // BG here
+				info.Add(new XElement("genre",				new XAttribute("__type", "u8"),		32));
+				info.Add(new XElement("is_fixed",			new XAttribute("__type", "u8"),		1));
+				info.Add(new XElement("version",			new XAttribute("__type", "u8"),		song.Data("version")));
+				info.Add(new XElement("demo_pri",			new XAttribute("__type", "s8"),		0));
+				info.Add(new XElement("inf_ver",			new XAttribute("__type", "u8"),		song.Data("inf_ver")));
+
+				XElement difficulty = new XElement("difficulty");
+				
+				foreach (string dif in DIFS)
+				{
+					XElement difTag = new XElement(dif);
+					difTag.Add(new XElement("difnum", new XAttribute("__type", "u8"), song.Difficulty(dif)));
+					difTag.Add(new XElement("illustrator", ""));
+					difTag.Add(new XElement("effected_by", ""));
+					difTag.Add(new XElement("price", new XAttribute("__type", "s32"), 9999));
+					difTag.Add(new XElement("limited", new XAttribute("__type", "s32"), 3));
+
+					difficulty.Add(difTag);
+				}
+
+				music.Add(info);
+				music.Add(difficulty);
+
+				root.Add(music);
+			}
+
+			root.Save(dbPath);
+		}
 
 		// Utilities
 
@@ -88,7 +142,10 @@ namespace SongList
 
 		public bool Loaded() { return loaded; }
 
+		// Datas
+
 		private Dictionary<int, Song> songs = new Dictionary<int, Song>();
+		private string kfcPath;
 		private bool loaded = false;
 	}
 }

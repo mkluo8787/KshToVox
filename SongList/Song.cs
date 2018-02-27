@@ -48,8 +48,9 @@ namespace SongList
 			}
 		}
 
-		public string Ascii() { return data["ascii"]; }
-		public string Title() { return data["title"]; }
+		public string Data(string tag) { return data[tag]; }
+
+		public int Difficulty(string tag) { return difficulty[tag]; }
 
 		public override string ToString()
 		{

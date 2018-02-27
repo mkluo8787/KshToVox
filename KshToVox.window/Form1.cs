@@ -26,7 +26,9 @@ namespace KshToVox.window
 			SongListTextBox.DataSource = null;
 			SongListTextBox.DataSource = Program.GetSongList();
 
-			label_title.Text = Program.GetSelectedTitle();
+			Dictionary<string, string> labels = Program.GetLabels();
+			label_title.Text = labels["title"];
+			label_artist.Text = labels["artist"];
 
 			toolStripStatusLabel1.Text = Program.GetStatus();
 
@@ -37,6 +39,12 @@ namespace KshToVox.window
 		private void loadToolStripMenuItem_Click(object sender, EventArgs e)
 		{
 			Program.LoadSongList();
+			UpdateView();
+		}
+
+		private void saveToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			Program.SaveSongList();
 			UpdateView();
 		}
 
@@ -81,5 +89,7 @@ namespace KshToVox.window
 			Program.DeleteSong();
 			UpdateView();
 		}
+
+		
 	}
 }

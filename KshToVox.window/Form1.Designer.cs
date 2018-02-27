@@ -33,26 +33,27 @@
 			this.loadToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.saveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.importkshToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.SongListTextBox = new System.Windows.Forms.ListBox();
-			this.splitContainer1 = new System.Windows.Forms.SplitContainer();
-			this.statusStrip1 = new System.Windows.Forms.StatusStrip();
 			this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.SongListTextBox = new System.Windows.Forms.ListBox();
+			this.splitContainer1 = new System.Windows.Forms.SplitContainer();
 			this.splitContainer2 = new System.Windows.Forms.SplitContainer();
-			this.button2 = new System.Windows.Forms.Button();
 			this.button3 = new System.Windows.Forms.Button();
+			this.button2 = new System.Windows.Forms.Button();
 			this.label_title = new System.Windows.Forms.Label();
+			this.statusStrip1 = new System.Windows.Forms.StatusStrip();
 			this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
+			this.label_artist = new System.Windows.Forms.Label();
 			this.menuStrip1.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
 			this.splitContainer1.Panel1.SuspendLayout();
 			this.splitContainer1.Panel2.SuspendLayout();
 			this.splitContainer1.SuspendLayout();
-			this.statusStrip1.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).BeginInit();
 			this.splitContainer2.Panel1.SuspendLayout();
 			this.splitContainer2.Panel2.SuspendLayout();
 			this.splitContainer2.SuspendLayout();
+			this.statusStrip1.SuspendLayout();
 			this.SuspendLayout();
 			// 
 			// menuStrip1
@@ -79,7 +80,7 @@
 			// loadToolStripMenuItem
 			// 
 			this.loadToolStripMenuItem.Name = "loadToolStripMenuItem";
-			this.loadToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+			this.loadToolStripMenuItem.Size = new System.Drawing.Size(145, 22);
 			this.loadToolStripMenuItem.Text = "Load...";
 			this.loadToolStripMenuItem.Click += new System.EventHandler(this.loadToolStripMenuItem_Click);
 			// 
@@ -88,12 +89,27 @@
 			this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
 			this.saveToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
 			this.saveToolStripMenuItem.Text = "Save";
+			this.saveToolStripMenuItem.Click += new System.EventHandler(this.saveToolStripMenuItem_Click);
 			// 
 			// importkshToolStripMenuItem
 			// 
 			this.importkshToolStripMenuItem.Name = "importkshToolStripMenuItem";
-			this.importkshToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+			this.importkshToolStripMenuItem.Size = new System.Drawing.Size(145, 22);
 			this.importkshToolStripMenuItem.Text = "Import .ksh...";
+			// 
+			// helpToolStripMenuItem
+			// 
+			this.helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.aboutToolStripMenuItem});
+			this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
+			this.helpToolStripMenuItem.Size = new System.Drawing.Size(46, 20);
+			this.helpToolStripMenuItem.Text = "Help";
+			// 
+			// aboutToolStripMenuItem
+			// 
+			this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
+			this.aboutToolStripMenuItem.Size = new System.Drawing.Size(118, 22);
+			this.aboutToolStripMenuItem.Text = "About...";
 			// 
 			// SongListTextBox
 			// 
@@ -124,30 +140,6 @@
 			this.splitContainer1.SplitterDistance = 230;
 			this.splitContainer1.TabIndex = 2;
 			// 
-			// statusStrip1
-			// 
-			this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripStatusLabel1});
-			this.statusStrip1.Location = new System.Drawing.Point(0, 334);
-			this.statusStrip1.Name = "statusStrip1";
-			this.statusStrip1.Size = new System.Drawing.Size(703, 22);
-			this.statusStrip1.TabIndex = 3;
-			this.statusStrip1.Text = "statusStrip1";
-			// 
-			// helpToolStripMenuItem
-			// 
-			this.helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.aboutToolStripMenuItem});
-			this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
-			this.helpToolStripMenuItem.Size = new System.Drawing.Size(46, 20);
-			this.helpToolStripMenuItem.Text = "Help";
-			// 
-			// aboutToolStripMenuItem
-			// 
-			this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-			this.aboutToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-			this.aboutToolStripMenuItem.Text = "About...";
-			// 
 			// splitContainer2
 			// 
 			this.splitContainer2.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -161,12 +153,23 @@
 			// 
 			// splitContainer2.Panel2
 			// 
+			this.splitContainer2.Panel2.Controls.Add(this.label_artist);
 			this.splitContainer2.Panel2.Controls.Add(this.label_title);
 			this.splitContainer2.Panel2.DragDrop += new System.Windows.Forms.DragEventHandler(this.splitContainer2_Panel2_DragDrop);
 			this.splitContainer2.Panel2.DragEnter += new System.Windows.Forms.DragEventHandler(this.splitContainer2_Panel2_DragEnter);
 			this.splitContainer2.Size = new System.Drawing.Size(445, 304);
 			this.splitContainer2.SplitterDistance = 109;
 			this.splitContainer2.TabIndex = 0;
+			// 
+			// button3
+			// 
+			this.button3.Enabled = false;
+			this.button3.Location = new System.Drawing.Point(3, 145);
+			this.button3.Name = "button3";
+			this.button3.Size = new System.Drawing.Size(104, 59);
+			this.button3.TabIndex = 2;
+			this.button3.Text = "Export .ksh";
+			this.button3.UseVisualStyleBackColor = true;
 			// 
 			// button2
 			// 
@@ -179,16 +182,6 @@
 			this.button2.UseVisualStyleBackColor = true;
 			this.button2.Click += new System.EventHandler(this.button2_Click);
 			// 
-			// button3
-			// 
-			this.button3.Enabled = false;
-			this.button3.Location = new System.Drawing.Point(3, 145);
-			this.button3.Name = "button3";
-			this.button3.Size = new System.Drawing.Size(104, 59);
-			this.button3.TabIndex = 2;
-			this.button3.Text = "Export .ksh";
-			this.button3.UseVisualStyleBackColor = true;
-			// 
 			// label_title
 			// 
 			this.label_title.AutoSize = true;
@@ -197,11 +190,29 @@
 			this.label_title.Size = new System.Drawing.Size(0, 12);
 			this.label_title.TabIndex = 0;
 			// 
+			// statusStrip1
+			// 
+			this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripStatusLabel1});
+			this.statusStrip1.Location = new System.Drawing.Point(0, 334);
+			this.statusStrip1.Name = "statusStrip1";
+			this.statusStrip1.Size = new System.Drawing.Size(703, 22);
+			this.statusStrip1.TabIndex = 3;
+			this.statusStrip1.Text = "statusStrip1";
+			// 
 			// toolStripStatusLabel1
 			// 
 			this.toolStripStatusLabel1.Name = "toolStripStatusLabel1";
 			this.toolStripStatusLabel1.Size = new System.Drawing.Size(351, 17);
 			this.toolStripStatusLabel1.Text = "Welcome to use KshToVox. Drag or load a KFC folder to start.";
+			// 
+			// label_artist
+			// 
+			this.label_artist.AutoSize = true;
+			this.label_artist.Location = new System.Drawing.Point(3, 32);
+			this.label_artist.Name = "label_artist";
+			this.label_artist.Size = new System.Drawing.Size(0, 12);
+			this.label_artist.TabIndex = 1;
 			// 
 			// Form
 			// 
@@ -223,13 +234,13 @@
 			this.splitContainer1.Panel2.ResumeLayout(false);
 			((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
 			this.splitContainer1.ResumeLayout(false);
-			this.statusStrip1.ResumeLayout(false);
-			this.statusStrip1.PerformLayout();
 			this.splitContainer2.Panel1.ResumeLayout(false);
 			this.splitContainer2.Panel2.ResumeLayout(false);
 			this.splitContainer2.Panel2.PerformLayout();
 			((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).EndInit();
 			this.splitContainer2.ResumeLayout(false);
+			this.statusStrip1.ResumeLayout(false);
+			this.statusStrip1.PerformLayout();
 			this.ResumeLayout(false);
 			this.PerformLayout();
 
@@ -252,6 +263,7 @@
 		private System.Windows.Forms.Button button3;
 		private System.Windows.Forms.Label label_title;
 		private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
+		private System.Windows.Forms.Label label_artist;
 	}
 }
 

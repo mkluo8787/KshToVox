@@ -49,6 +49,11 @@ namespace KshToVox.window
 			songList.Load(path);
 		}
 
+		public static void SaveSongList()
+		{
+			songList.Save();
+		}
+
 		public static void ImportSong()
 		{
 			if (!songList.Loaded())
@@ -91,12 +96,18 @@ namespace KshToVox.window
 
 		public static List<KeyValuePair<int, Song>> GetSongList() {	return songList.List();	}
 
-		public static string GetSelectedTitle()
+		public static Dictionary<string, string> GetLabels()
 		{
 			int id = form.GetSongListTextBoxSongId();
-			Console.WriteLine(id);
-			if (id == -1) return "";
-			return songList.Song(id).Title();
+
+			Dictionary<string, string> labels = new Dictionary<string, string>();
+
+			string[] tags = {"title", "artist"};
+			foreach (string tag in tags)
+				if (id == -1) labels[tag] = "";
+				else labels[tag] = songList.Song(id).Data(tag);
+
+			return labels;
 		}
 
 		public static string GetStatus() { return statusText; }

@@ -15,3 +15,7 @@ Chart
 	SpEffect Enumeration
 	.ksh Parsing
 	.vox Output
+
+Prompt for unsaved data.
+
+* the 5th line in the vol track may be the stop effect?
