@@ -12,8 +12,6 @@ namespace KshToVox.window
 {
 	static class Program
 	{
-		static Form form;
-
 		/// <summary>
 		/// The main entry point for the application.
 		/// </summary>
@@ -22,13 +20,12 @@ namespace KshToVox.window
 		{
 			Application.EnableVisualStyles();
 			Application.SetCompatibleTextRenderingDefault(false);
-
-			form = new Form();
-			Application.Run(form);	
+			Application.Run(new Form());	
 		}
 
 		static SongList.SongList	songList = new SongList.SongList();
 		static string statusText = "";
+		static int selectedSongId = -1;
 
 		public static void LoadSongList() {
 
@@ -85,7 +82,7 @@ namespace KshToVox.window
 
 		public static void DeleteSong()
 		{
-			int id = form.GetSongListTextBoxSongId();
+			int id = selectedSongId;
 			if (id == -1)
 			{
 				SetStatus("No song selected!");
@@ -98,7 +95,7 @@ namespace KshToVox.window
 
 		public static Dictionary<string, string> GetLabels()
 		{
-			int id = form.GetSongListTextBoxSongId();
+			int id = selectedSongId;
 
 			Dictionary<string, string> labels = new Dictionary<string, string>();
 
@@ -109,6 +106,8 @@ namespace KshToVox.window
 
 			return labels;
 		}
+
+		internal static void UpdateSeletedSongId(int id) { selectedSongId = id; }
 
 		public static string GetStatus() { return statusText; }
 

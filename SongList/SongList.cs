@@ -12,8 +12,14 @@ namespace SongList
 	public class SongList
 	{
 		readonly string[] DIFS = { "novice", "advanced", "exhaust", "infinite" };
+		public readonly static string cachePath = System.IO.Path.GetDirectoryName(
+			System.Reflection.Assembly.GetExecutingAssembly().Location
+			) + "\\cache\\";
 
-		public SongList() { }
+		public SongList()
+		{
+			Directory.CreateDirectory(cachePath);
+		}
 
 		// From KFC
 		public void Load(string kfcPath_)
@@ -101,7 +107,7 @@ namespace SongList
 				bw.Write(0x00010040);
 				bw.Write(0x00000000);
 				
-				song.GetWav().WriteTo(osstream);
+				song.GetWav().CopyTo(osstream);
 
 				long endPos = osstream.Position;
 				bw.BaseStream.Position = 0x54;
@@ -154,7 +160,7 @@ namespace SongList
 			root.Save(dbPath);
 		}
 
-		// Utilities
+		// Utils
 
 		public Song Song(int id) { return songs[id]; }
 

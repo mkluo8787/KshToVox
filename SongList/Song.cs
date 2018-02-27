@@ -41,27 +41,33 @@ namespace SongList
 				charts[difInfo.Key] = new Chart(cstream);
 
 				cstream.Close();
+
+				// .2dx to wav
+
+				string soundPath = kfcPath + "\\data\\sound\\" + BaseName() + ".2dx";
+				string outSoundPath = SongList.cachePath + BaseName() + ".wav";
+				if (!File.Exists(soundPath)) throw new FileNotFoundException();
+				FileStream sstream = new FileStream(soundPath, FileMode.Open);
+				FileStream osstream = new FileStream(outSoundPath, FileMode.Create);
+
+				sstream.Position = 0x64;
+				sstream.CopyTo(osstream);
+
+				sstream.Close();
+				osstream.Close();
 			}
 
-			// .2dx to wav
-
-			string soundPath = kfcPath + "\\data\\sound\\" + BaseName() + ".2dx";
-			if (!File.Exists(soundPath)) throw new FileNotFoundException();
-			FileStream sstream = new FileStream(soundPath, FileMode.Open);
-
-			sstream.Position = 0x64;
-			sstream.CopyTo(music);
-
-			sstream.Close();
-			/*
-			string outSoundPath = kfcPath + "\\data\\sound\\" + base_name + ".wav";
-			FileStream osstream = new FileStream(outSoundPath, FileMode.Create);
-			music.WriteTo(osstream);
-
-			osstream.Close();
-			*/
 		}
 
+		// Music (wav ms-adpcm)
+		public FileStream GetWav()
+		{
+			string outSoundPath = SongList.cachePath + BaseName() + ".wav";
+			if (!File.Exists(outSoundPath)) throw new FileNotFoundException();
+			return new FileStream(outSoundPath, FileMode.Open);
+		}
+
+		// Utils
 		public string Data(string tag) { return data[tag]; }
 
 		public int Difficulty(string tag) { return difficulty[tag]; }
@@ -73,8 +79,7 @@ namespace SongList
 					data["ascii"];
 		}
 
-		public MemoryStream GetWav() { return music; }
-
+		// Override
 		public override string ToString()
 		{
 			return data["ascii"];
@@ -87,8 +92,5 @@ namespace SongList
 
 		// Charts
 		private Dictionary<string, Chart> charts = new Dictionary<string, Chart>();
-
-		// Music (wav ms-adpcm)
-		private MemoryStream music = new MemoryStream();
 	}
 }

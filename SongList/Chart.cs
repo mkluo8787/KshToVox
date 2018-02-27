@@ -51,7 +51,14 @@ namespace SongList
 			private int length;
 		}
 
+		// From .vox
 		public Chart(Stream s)
+		{
+			// Parse .vox into Chart object
+		}
+
+		// From .ksh
+		public Chart(List<string> s)
 		{
 			// Parse .ksh into Chart object
 		}

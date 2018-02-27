@@ -48,14 +48,6 @@ namespace KshToVox.window
 			UpdateView();
 		}
 
-		public int GetSongListTextBoxSongId()
-		{
-			if (SongListTextBox.SelectedItem == null) return -1;
-			KeyValuePair<int, Song> songId = (KeyValuePair<int, Song>)SongListTextBox.SelectedItem;
-
-			return songId.Key;
-		}
-
 		private void splitContainer1_Panel1_DragEnter(object sender, DragEventArgs e)
 		{
 			if (e.Data.GetDataPresent(DataFormats.FileDrop)) e.Effect = DragDropEffects.Copy;
@@ -90,6 +82,17 @@ namespace KshToVox.window
 			UpdateView();
 		}
 
-		
+		private void SongListTextBox_SelectedValueChanged(object sender, EventArgs e)
+		{
+
+			if (SongListTextBox.SelectedItem == null)
+				Program.UpdateSeletedSongId(-1);
+			else
+			{
+				KeyValuePair<int, Song> songId = (KeyValuePair<int, Song>)SongListTextBox.SelectedItem;
+				Program.UpdateSeletedSongId(songId.Key);
+			}
+			UpdateView();
+		}
 	}
 }

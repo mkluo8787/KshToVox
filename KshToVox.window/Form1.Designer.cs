@@ -40,10 +40,10 @@
 			this.splitContainer2 = new System.Windows.Forms.SplitContainer();
 			this.button3 = new System.Windows.Forms.Button();
 			this.button2 = new System.Windows.Forms.Button();
+			this.label_artist = new System.Windows.Forms.Label();
 			this.label_title = new System.Windows.Forms.Label();
 			this.statusStrip1 = new System.Windows.Forms.StatusStrip();
 			this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
-			this.label_artist = new System.Windows.Forms.Label();
 			this.menuStrip1.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
 			this.splitContainer1.Panel1.SuspendLayout();
@@ -87,7 +87,7 @@
 			// saveToolStripMenuItem
 			// 
 			this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
-			this.saveToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+			this.saveToolStripMenuItem.Size = new System.Drawing.Size(145, 22);
 			this.saveToolStripMenuItem.Text = "Save";
 			this.saveToolStripMenuItem.Click += new System.EventHandler(this.saveToolStripMenuItem_Click);
 			// 
@@ -119,6 +119,7 @@
 			this.SongListTextBox.Name = "SongListTextBox";
 			this.SongListTextBox.Size = new System.Drawing.Size(224, 292);
 			this.SongListTextBox.TabIndex = 1;
+			this.SongListTextBox.SelectedValueChanged += new System.EventHandler(this.SongListTextBox_SelectedValueChanged);
 			// 
 			// splitContainer1
 			// 
@@ -182,6 +183,14 @@
 			this.button2.UseVisualStyleBackColor = true;
 			this.button2.Click += new System.EventHandler(this.button2_Click);
 			// 
+			// label_artist
+			// 
+			this.label_artist.AutoSize = true;
+			this.label_artist.Location = new System.Drawing.Point(3, 32);
+			this.label_artist.Name = "label_artist";
+			this.label_artist.Size = new System.Drawing.Size(0, 12);
+			this.label_artist.TabIndex = 1;
+			// 
 			// label_title
 			// 
 			this.label_title.AutoSize = true;
@@ -205,14 +214,6 @@
 			this.toolStripStatusLabel1.Name = "toolStripStatusLabel1";
 			this.toolStripStatusLabel1.Size = new System.Drawing.Size(351, 17);
 			this.toolStripStatusLabel1.Text = "Welcome to use KshToVox. Drag or load a KFC folder to start.";
-			// 
-			// label_artist
-			// 
-			this.label_artist.AutoSize = true;
-			this.label_artist.Location = new System.Drawing.Point(3, 32);
-			this.label_artist.Name = "label_artist";
-			this.label_artist.Size = new System.Drawing.Size(0, 12);
-			this.label_artist.TabIndex = 1;
 			// 
 			// Form
 			// 
