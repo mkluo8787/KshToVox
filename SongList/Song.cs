@@ -77,7 +77,11 @@ namespace SongList
 
 			string outSoundPath = SongList.cachePath + BaseName() + ".wav";
 			ConvertAndTrimToWav(soundPath, outSoundPath, int.Parse(kshCheckParse["o"]));
-		}
+
+            songCachePath = outSoundPath + RandomString(10);
+            if (!File.Exists(outSoundPath)) throw new FileNotFoundException();
+            System.IO.File.Move(outSoundPath, songCachePath);
+        }
 
 		// From KFC
 		public Song(Dictionary<string, string>	data_,
@@ -98,30 +102,49 @@ namespace SongList
 				charts[difInfo.Key] = new Chart(cstream);
 
 				cstream.Close();
+            }
 
-				// .2dx to wav
+            // .2dx to wav
 
-				string soundPath = kfcPath + "\\data\\sound\\" + BaseName() + ".2dx";
-				string outSoundPath = SongList.cachePath + BaseName() + ".wav";
-				if (!File.Exists(soundPath)) throw new FileNotFoundException();
-				FileStream sstream = new FileStream(soundPath, FileMode.Open);
-				FileStream osstream = new FileStream(outSoundPath, FileMode.Create);
+            string soundPath = kfcPath + "\\data\\sound\\" + BaseName() + ".2dx";
+            string outSoundPath = SongList.cachePath + BaseName() + ".wav" + RandomString(10);
+            if (!File.Exists(soundPath)) throw new FileNotFoundException();
+            FileStream sstream = new FileStream(soundPath, FileMode.Open);
+            FileStream osstream = new FileStream(outSoundPath, FileMode.Create);
 
-				sstream.Position = 0x64;
-				sstream.CopyTo(osstream);
+            sstream.Position = 0x64;
+            sstream.CopyTo(osstream);
 
-				sstream.Close();
-				osstream.Close();
-			}
+            sstream.Close();
+            osstream.Close();
 
-		}
+            songCachePath = outSoundPath;
+        }
+
+        // Write to Vox
+        public void Save(string kfcPath)
+        {
+            foreach (KeyValuePair<string, int> difInfo in difficulty)
+            {
+                if (difInfo.Value == 0) continue;
+
+                string chartPath = kfcPath + "\\data\\others\\vox\\" + BaseName() + Suffix(difInfo.Key) + ".vox";
+                FileStream cstream = new FileStream(chartPath, FileMode.Create);
+
+                MemoryStream mstream = charts[difInfo.Key].ToVox();
+                mstream.Position = 0;
+                mstream.CopyTo(cstream);
+
+                mstream.Close();
+                cstream.Close();
+            }
+        }
 
 		// Music (wav ms-adpcm)
 		public FileStream GetWav()
 		{
-			string outSoundPath = SongList.cachePath + BaseName() + ".wav";
-			if (!File.Exists(outSoundPath)) throw new FileNotFoundException();
-			return new FileStream(outSoundPath, FileMode.Open);
+			if (!File.Exists(songCachePath)) throw new FileNotFoundException();
+			return new FileStream(songCachePath, FileMode.Open);
 		}
 
 		private static void ConvertAndTrimToWav(string src, string dest, int trimMs)
@@ -137,11 +160,12 @@ namespace SongList
             else if (trimMs < 0)
                 startInfo.Arguments = "-G -q \"" + src + "\" -e ms-adpcm \"" + dest + "\" pad " + (-trimSec).ToString() + " 0.0";
             else
-                startInfo.Arguments = "-G -q \"" + src + "\" -e ms-adpcm \"" + dest;
+                startInfo.Arguments = "-G -q \"" + src + "\" -e ms-adpcm \"" + dest + "\"";
             process.StartInfo = startInfo;
             Console.WriteLine(startInfo.Arguments);
 			process.Start();
-		}
+            process.WaitForExit();
+        }
 
 		// Utils
 		public string Data(string tag) { return data[tag]; }
@@ -218,8 +242,17 @@ namespace SongList
 			return (data, chart);
 		}
 
-		// Override
-		public override string ToString()
+        private static Random random = new Random();
+
+        public static string RandomString(int length)
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            return new string(Enumerable.Repeat(chars, length)
+              .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
+
+        // Override
+        public override string ToString()
 		{
 			return data["ascii"];
 		}
@@ -228,6 +261,8 @@ namespace SongList
 
 		Dictionary<string, string> data = new Dictionary<string, string>();
 		Dictionary<string, int> difficulty = new Dictionary<string, int>();
+
+        string songCachePath;
 
 		// Charts
 		private Dictionary<string, Chart> charts = new Dictionary<string, Chart>();

@@ -8,7 +8,7 @@ using System.IO;
 
 namespace SongList
 {
-	public class Chart
+	class Chart
 	{
 		class TimePos
 		{
@@ -20,6 +20,13 @@ namespace SongList
                 this.measure = measure;
                 this.beat = beat;
                 this.time = time;
+            }
+            public TimePos(string s)
+            {
+                string[] tokens = s.Split(',');
+                measure = int.Parse(tokens[0]);
+                beat    = int.Parse(tokens[1]);
+                time    = int.Parse(tokens[2]);
             }
             public void Print()
             {
@@ -33,6 +40,14 @@ namespace SongList
                 {
                     this.time = prev.time;
                 }
+            }
+
+            //Overwrite
+            public override string ToString()
+            {
+                return  measure.ToString().PadLeft(3, '0') + "," + 
+                        beat.ToString().PadLeft(2, '0') + "," + 
+                        time.ToString().PadLeft(2, '0');
             }
         }
 		class FxEffect
@@ -75,6 +90,15 @@ namespace SongList
             {
                 Console.WriteLine("({0}, {1}, {2})", this.pos, this.flag, this.expand);
             }
+            //Overwrite
+            public override string ToString()
+            {
+                return pos.ToString() + "\t" +
+                        flag.ToString() + "\t" +
+                        flip.ToString() + "\t" +
+                        filter.ToString() + "\t" +
+                        expand.ToString();
+            }
         }
 		class Fx
 		{
@@ -92,6 +116,12 @@ namespace SongList
             {
                 Console.WriteLine(this.length);
             }
+            //Overwrite
+            public override string ToString()
+            {
+                return length.ToString() + "\t" +
+                        ((length == 0) ? 255 : 2).ToString();
+            }
         }
 		class Bt
 		{
@@ -108,16 +138,116 @@ namespace SongList
             {
                 Console.WriteLine(this.length);
             }
+            //Overwrite
+            public override string ToString()
+            {
+                return length.ToString() + "\t" +
+                        ((length == 0) ? 255 : 2).ToString();
+            }
         }
 
-		// From .vox
-		public Chart(Stream s)
-		{
-			// Parse .vox into Chart object
-		}
+        // From .vox
+        static char[] whitespace = new char[] { ' ', '\t' };
 
-		// From .ksh
-		public Chart(List<string> chartList)
+        public Chart(Stream s)
+        {
+            // Parse .vox into Chart object
+            StreamReader sr = new StreamReader(s);
+            string line;
+            
+            GoToTag(sr, "#BEAT INFO");
+            beat = new List<Tuple<TimePos, Tuple<int, int>>>();
+            while (true)
+            {
+                line = sr.ReadLine();
+                if (line.Contains("#END")) break;
+
+                string[] tokens = line.Split(whitespace);
+                beat.Add(new Tuple<TimePos, Tuple<int, int>>(new TimePos(tokens[0]),
+                        new Tuple<int, int>(int.Parse(tokens[1]), int.Parse(tokens[2]))));
+            }
+            GoToTag(sr, "#BPM INFO");
+            bpm = new List<Tuple<TimePos, double>>();
+            while (true)
+            {
+                line = sr.ReadLine();
+                if (line.Contains("#END")) break;
+
+                string[] tokens = line.Split(whitespace);
+                bpm.Add(new Tuple<TimePos, double>(new TimePos(tokens[0]),
+                        Convert.ToDouble(tokens[1])));
+            }
+
+            GoToTag(sr, "#END POSITION");
+            line = sr.ReadLine();
+            endPos = new TimePos(line);
+
+            volL = ParseVoxVol(sr, "#TRACK1");
+            fxL = ParseVoxFx(sr, "#TRACK2");
+            btA = ParseVoxBt(sr, "#TRACK3");
+            btB = ParseVoxBt(sr, "#TRACK4");
+            btC = ParseVoxBt(sr, "#TRACK5");
+            btD = ParseVoxBt(sr, "#TRACK6");
+            fxR = ParseVoxFx(sr, "#TRACK7");
+            volR = ParseVoxVol(sr, "#TRACK8");
+        }
+
+        // Utils for vox parsing
+        private static List<Tuple<TimePos, Vol>> ParseVoxVol(StreamReader sr, string tag)
+        {
+            List<Tuple<TimePos, Vol>> list = new List<Tuple<TimePos, Vol>>();
+
+            GoToTag(sr, tag);
+            while (true)
+            {
+                string line = sr.ReadLine();
+                if (line.Contains("#END")) break;
+
+                string[] tokens = line.Split(whitespace);
+                list.Add(new Tuple<TimePos, Vol>(new TimePos(tokens[0]),
+                            new Vol(int.Parse(tokens[1]),
+                                    int.Parse(tokens[2]),
+                                    int.Parse(tokens[5]))));
+            }
+            return list;
+        }
+
+        private static List<Tuple<TimePos, Bt>> ParseVoxBt(StreamReader sr, string tag)
+        {
+            List<Tuple<TimePos, Bt>> list = new List<Tuple<TimePos, Bt>>();
+
+            GoToTag(sr, tag);
+            while (true)
+            {
+                string line = sr.ReadLine();
+                if (line.Contains("#END")) break;
+
+                string[] tokens = line.Split(whitespace);
+                list.Add(   new Tuple<TimePos, Bt>(new TimePos(tokens[0]),
+                            new Bt(int.Parse(tokens[1]))));
+            }
+            return list;
+        }
+
+        private static List<Tuple<TimePos, Fx>> ParseVoxFx(StreamReader sr, string tag)
+        {
+            List<Tuple<TimePos, Fx>> list = new List<Tuple<TimePos, Fx>>();
+
+            GoToTag(sr, tag);
+            while (true)
+            {
+                string line = sr.ReadLine();
+                if (line.Contains("#END")) break;
+
+                string[] tokens = line.Split(whitespace);
+                list.Add(new Tuple<TimePos, Fx>(new TimePos(tokens[0]),
+                            new Fx(int.Parse(tokens[1]))));
+            }
+            return list;
+        }
+
+        // From .ksh
+        public Chart(List<string> chartList)
 		{
             /****************************************
              initialize variables
@@ -164,6 +294,7 @@ namespace SongList
                     barNbr2beat.Add(index2barNbr[i], 
                         new Tuple<int, int>((int)(chartList[i][5] - '0'), (int)(chartList[i][7] - '0')));
             }
+            barNbr2beat[0] = new Tuple<int, int>(4, 4);
             for (int i = 1; i <= barCount; i++)
             {
                 if (!barNbr2beat.ContainsKey(i))
@@ -293,8 +424,10 @@ namespace SongList
             Dictionary<char, int> Pos1 =
                 new Dictionary<char, int>()
                 {
-                    {'0', 0}, {'5', 12}, {'A', 25}, {'F', 38}, {'K', 50},
-                    {'P', 63}, {'U', 76}, {'Z', 88}, {'e', 101}, {'j', 114}, {'o', 127}
+                    {'0', 0}, {'2', 5}, {'5', 12}, {'7', 17}, {'A', 25},
+                    {'C', 30}, {'F', 38}, {'H', 43}, {'K', 50}, {'M', 55},
+                    {'P', 63}, {'S', 71}, {'U', 76}, {'X', 83}, {'Z', 88},
+                    {'b', 93}, {'e', 101}, {'h', 109}, {'j', 114}, {'m', 121}, {'o', 127}
                 };
             Dictionary<char, int> Pos2 =
                 new Dictionary<char, int>()
@@ -330,8 +463,9 @@ namespace SongList
                             }
                             else
                             {
+                                char c = cL[i][VOLtype];
                                 vol.Add(new Tuple<TimePos, Vol>(index2TimePos[i],
-                                        new Vol(p1[cL[i][VOLtype]], 0, 1)));
+                                        new Vol(p1[c], 0, 1)));
                             }
                             if (!inLine)
                             {
@@ -382,20 +516,192 @@ namespace SongList
             /****************************************
                              endPos
             ****************************************/
-            endPos = new TimePos(barCount + 2, 1, 0);
+            endPos = new TimePos(barCount + 1, 1, 0);
         }
 
         // Output to .vox
-        public Stream ToVox()
+        public MemoryStream ToVox()
 		{
 			MemoryStream stream = new MemoryStream();
 			StreamWriter writer = new StreamWriter(stream);
 
+            writer.Write(@"//====================================
+// SOUND VOLTEX OUTPUT TEXT FILE
+//====================================
+
+#FORMAT VERSION
+8
+#END
+
+#BEAT INFO
+");
+            foreach (Tuple<TimePos, Tuple<int, int>> b in beat)
+            {
+                writer.Write(b.Item1);
+                writer.Write('\t');
+                writer.Write(b.Item2.Item1);
+                writer.Write('\t');
+                writer.Write(b.Item2.Item2);
+                writer.Write('\n');
+            }
+            writer.Write(@"#END
+
+#BPM INFO
+");
+            foreach (Tuple<TimePos, double> b in bpm)
+            {
+                writer.Write(b.Item1);
+                writer.Write('\t');
+                writer.Write(b.Item2);
+                writer.Write('\t');
+                writer.Write("4");
+                writer.Write('\n');
+            }
+            writer.Write(@"#END
+
+#TILT MODE INFO
+001,01,00	0
+#END
+
+#LYRIC INFO
+#END
+
+#END POSITION
+");
+            writer.Write(endPos);
+            writer.Write('\n');
+            writer.Write(@"#END
+
+#TAB EFFECT INFO
+1,	90.00,	400.00,	18000.00,	0.70
+1,	90.00,	600.00,	15000.00,	5.00
+2,	90.00,	40.00,	5000.00,	0.70
+2,	90.00,	40.00,	2000.00,	3.00
+3,	100.00,	30
+#END
+
+#FXBUTTON EFFECT INFO
+#END
+
+#TAB PARAM ASSIGN INFO
+0,	0,	0.00,	0.00
+0,	0,	0.00,	0.00
+1,	0,	0.00,	0.00
+1,	0,	0.00,	0.00
+2,	0,	0.00,	0.00
+2,	0,	0.00,	0.00
+3,	0,	0.00,	0.00
+3,	0,	0.00,	0.00
+4,	0,	0.00,	0.00
+4,	0,	0.00,	0.00
+5,	0,	0.00,	0.00
+5,	0,	0.00,	0.00
+6,	0,	0.00,	0.00
+6,	0,	0.00,	0.00
+7,	0,	0.00,	0.00
+7,	0,	0.00,	0.00
+8,	0,	0.00,	0.00
+8,	0,	0.00,	0.00
+9,	0,	0.00,	0.00
+9,	0,	0.00,	0.00
+10,	0,	0.00,	0.00
+10,	0,	0.00,	0.00
+11,	0,	0.00,	0.00
+11,	0,	0.00,	0.00
+#END
+
+#REVERB EFFECT PARAM
+#END
+
+//====================================
+// TRACK INFO
+//====================================
+
+#TRACK1
+");
+            WriteTrack<Vol>(writer, volL);
+            writer.Write(@"#END
+
+//====================================
+
+#TRACK2
+");
+            WriteTrack<Fx>(writer, fxL);
+            writer.Write(@"#END
+
+//====================================
+
+#TRACK3
+");
+            WriteTrack<Bt>(writer, btA);
+            writer.Write(@"#END
+
+//====================================
+
+#TRACK4
+");
+            WriteTrack<Bt>(writer, btB);
+            writer.Write(@"#END
+
+//====================================
+
+#TRACK5
+");
+            WriteTrack<Bt>(writer, btC);
+            writer.Write(@"#END
+
+//====================================
+
+#TRACK6
+");
+            WriteTrack<Bt>(writer, btD);
+            writer.Write(@"#END
+
+//====================================
+
+#TRACK7
+");
+            WriteTrack<Fx>(writer, fxR);
+            writer.Write(@"#END
+
+//====================================
+
+#TRACK8
+");
+            WriteTrack<Vol>(writer, volR);
+            writer.Write(@"#END
+
+//====================================");
+
+            writer.Flush();
 			return stream;
 		}
 		//public Stream ToKsh() { }
 
-		private List<Tuple<TimePos, Tuple<int, int>>>	beat;
+        // Utils
+
+        private static void GoToTag(StreamReader sr, string tag)
+        {
+            while (sr.Peek() > 0)
+            {
+                string line = sr.ReadLine();
+                if (line.Contains(tag))
+                   return;
+            }
+        }
+
+        private static void WriteTrack<T>(StreamWriter sw, List<Tuple<TimePos, T>> data)
+        {
+            foreach (Tuple<TimePos, T> b in data)
+            {
+                sw.Write(b.Item1);
+                sw.Write('\t');
+                sw.Write(b.Item2);
+                sw.Write('\n');
+            }
+        }
+
+        private List<Tuple<TimePos, Tuple<int, int>>>	beat;
 		private List<Tuple<TimePos, double>>			bpm;
 
 		private TimePos endPos;

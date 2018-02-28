@@ -70,7 +70,7 @@ namespace SongList
 		public int AddKshSong(string path)
 		{
 			int newId = 0;
-			foreach (int id in Enumerable.Range(1, 1024))
+			foreach (int id in Enumerable.Range(256, 1024))
 				if (!songs.ContainsKey(id))
 				{
 					newId = id;
@@ -109,12 +109,14 @@ namespace SongList
 				bw.Write(0x0000004C);
 				bw.Write(0x39584432);
 				bw.Write(0x00000018);
-				bw.Write(0x00000000); // Will be replaced with sund length later
+				bw.Write(0x00000000); // Will be replaced with sound length later
 				bw.Write(0xFFFF3231);
 				bw.Write(0x00010040);
 				bw.Write(0x00000000);
-				
-				song.GetWav().CopyTo(osstream);
+
+                FileStream fs = song.GetWav();
+                fs.CopyTo(osstream);
+                fs.Close();
 
 				long endPos = osstream.Position;
 				bw.BaseStream.Position = 0x54;
@@ -122,8 +124,11 @@ namespace SongList
 
 				osstream.Close();
 
+                // Write .vox
 
-				XElement music = new XElement("music", new XAttribute("id", id));
+                song.Save(kfcPath);
+
+                XElement music = new XElement("music", new XAttribute("id", id));
 
 				XElement info = new XElement("info");
 
