@@ -29,4 +29,6 @@ Prompt for unsaved data.
 
 * Toolstrip: Close
 
+# Form Title: show "*" when unsaved
+
 Fill in the infos.

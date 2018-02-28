@@ -70,17 +70,21 @@ namespace SongList
 		public int AddKshSong(string path)
 		{
 			int newId = 0;
-			foreach (int id in Enumerable.Range(256, 1024))
-				if (!songs.ContainsKey(id))
-				{
-					newId = id;
-					break;
-				}
+            int listId = 0; // For ListBox Display
+            foreach (int id in Enumerable.Range(256, 1024))
+            {
+                if (songs.ContainsKey(id)) listId++;
+                else
+                {
+                    newId = id;
+                    break;
+                }
+            }
 			if (newId == 0) throw new Exception("Song list is full!");
 
 			songs[newId] = new Song(newId.ToString(), path);
 
-			return newId;
+			return listId;
 		}
 
 		public void DeleteId(int id)

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 
 using System.IO;
+using System.Threading;
 
 using SongList;
 
@@ -25,11 +26,17 @@ namespace KshToVox.window
 
 		static SongList.SongList	songList = new SongList.SongList();
 		static string statusText = "";
-		static int selectedSongId = -1;
+        static string statusRText = "";
+        static bool changes = false;
+        static bool loading = false;
+        static int selectedSongId = -1;
+        static int newSongIndex = -1;
 
-		public static void LoadSongList() {
+        public static void LoadSongList()
+        {
+            if (loading) return;
 
-			FolderBrowserDialog folderBrowserDialog1 = new FolderBrowserDialog();
+            FolderBrowserDialog folderBrowserDialog1 = new FolderBrowserDialog();
 
 			folderBrowserDialog1.Description = "Select the KFC path.";
 			folderBrowserDialog1.ShowNewFolderButton = false;
@@ -42,23 +49,27 @@ namespace KshToVox.window
 
 		public static void LoadSongList(string path)
 		{
-			SetStatus("KFC song list loaded.");
-			songList.Load(path);
-		}
+            if (loading) return;
+            if (changes)
+                if (!Ask("Discard unsaved changes?")) return;
+			
+            changes = false;
+            songList.Load(path);
+            SetStatus("KFC song list loaded.");
+        }
 
 		public static void SaveSongList()
 		{
-            SetStatus("KFC song list saved.");
+            if (loading) return;
+            changes = false;
             songList.Save();
-		}
+            SetStatus("KFC song list saved.");
+        }
 
-		public static void ImportSong()
+		public static void ImportSong(Action callbackUpdate)
 		{
-			if (!songList.Loaded())
-			{
-				SetStatus("KFC song list has not loaded!");
-				return;
-			}
+            if (loading) return;
+ 
 			FolderBrowserDialog folderBrowserDialog1 = new FolderBrowserDialog();
 
 			folderBrowserDialog1.Description = "Select the KFC path.";
@@ -66,29 +77,51 @@ namespace KshToVox.window
 
 			if (folderBrowserDialog1.ShowDialog() == DialogResult.OK)
 			{
-				ImportSong(folderBrowserDialog1.SelectedPath);
+                ImportSong(folderBrowserDialog1.SelectedPath, callbackUpdate);
 			}
 		}
 
-		public static void ImportSong(string path)
+		public static void ImportSong(string path, Action callbackUpdate)
 		{
-			if (!songList.Loaded())
+            if (loading) return;
+
+            if (!songList.Loaded())
 			{
 				SetStatus("KFC song list has not loaded!");
 				return;
 			}
-			SetStatus("New K-Shoot song loaded with id = " + songList.AddKshSong(path));
-		}
 
-		public static void DeleteSong()
+            Thread thread = new Thread(() => ImportSong_Thread(path, callbackUpdate));
+            thread.Start();
+        }
+
+        private static void ImportSong_Thread(string path, Action callbackUpdate)
+        {
+            loading = true;
+            SetStatusR("Loading...");
+
+            newSongIndex = songList.AddKshSong(path);
+
+            SetStatusR("");
+            SetStatus("New K-Shoot song loaded.");
+            changes = true;
+            loading = false;
+            
+            callbackUpdate();
+        }
+
+        public static void DeleteSong()
 		{
-			int id = selectedSongId;
+            if (loading) return;
+
+            int id = selectedSongId;
 			if (id == -1)
 			{
 				SetStatus("No song selected!");
 				return;
 			}
-			songList.DeleteId(id);
+            changes = true;
+            songList.DeleteId(id);
 		}
 
 		public static List<KeyValuePair<int, Song>> GetSongList() {	return songList.List();	}
@@ -109,12 +142,28 @@ namespace KshToVox.window
 			return labels;
 		}
 
-		internal static void UpdateSeletedSongId(int id) {	selectedSongId = id; }
+        public static string GetTitle()
+        {
+            if (changes) return "KshToVox (Unsaved changes)";
+            else return "KshToVox";
+        }
 
-		public static string GetStatus() { return statusText; }
+        public static void UpdateSeletedSongId(int id) { selectedSongId = id; }
 
-		public static bool Loaded() { return songList.Loaded(); }
+        public static int NewSongIndex() { return newSongIndex; }
 
-		public static void SetStatus(string text) { statusText = text; }
+        public static string GetStatus() { return statusText; }
+        public static string GetStatusR() { return statusRText; }
+
+        public static bool Loaded() { return songList.Loaded(); }
+
+        private static void SetStatus(string text) { statusText = text; }
+        private static void SetStatusR(string text) { statusRText = text; }
+
+        private static bool Ask(string text)
+        {
+            return MessageBox.Show(text, "KshToVox",
+                MessageBoxButtons.YesNo) == DialogResult.Yes;
+        }
 	}
 }

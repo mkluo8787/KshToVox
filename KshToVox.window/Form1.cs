@@ -23,23 +23,33 @@ namespace KshToVox.window
 
 		private void UpdateView()
 		{
-			SongListTextBox.DataSource = null;
-			SongListTextBox.DataSource = Program.GetSongList();
+            this.Invoke((MethodInvoker)delegate
+            {
+                SongListTextBox.DataSource = null;
+                SongListTextBox.DataSource = Program.GetSongList();
 
-			UpdateViewStatic();
+                SongListTextBox.SelectedIndex = Program.NewSongIndex();
+
+                UpdateViewStatic();
+            });
 		}
 
 		private void UpdateViewStatic()
 		{
+            Text = Program.GetTitle();
+
 			Dictionary<string, string> labels = Program.GetLabels();
 			label_title.Text = labels["title"];
 			label_artist.Text = labels["artist"];
 
 			toolStripStatusLabel1.Text = Program.GetStatus();
+            toolStripStatusLabel3.Text = Program.GetStatusR();
 
-			button2.Enabled = Program.Loaded();
-			button3.Enabled = Program.Loaded();
-		}
+            button2.Enabled = Program.Loaded();
+            //button3.Enabled = Program.Loaded();
+            button3.Enabled = false;
+
+        }
 
 		private void loadToolStripMenuItem_Click(object sender, EventArgs e)
 		{
@@ -77,7 +87,7 @@ namespace KshToVox.window
 			string[] folders = (string[])e.Data.GetData(DataFormats.FileDrop);
 			if (!((folders.Length == 1) && (Directory.Exists(folders[0])))) return;
 
-			Program.ImportSong(folders[0]);
+			Program.ImportSong(folders[0], UpdateView);
 			UpdateView();
 		}
 
@@ -101,5 +111,5 @@ namespace KshToVox.window
 
 			UpdateViewStatic();
 		}
-	}
+    }
 }
