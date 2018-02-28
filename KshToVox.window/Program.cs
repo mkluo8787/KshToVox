@@ -48,7 +48,8 @@ namespace KshToVox.window
 
 		public static void SaveSongList()
 		{
-			songList.Save();
+            SetStatus("KFC song list saved.");
+            songList.Save();
 		}
 
 		public static void ImportSong()

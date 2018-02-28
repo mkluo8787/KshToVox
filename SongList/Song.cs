@@ -27,7 +27,7 @@ namespace SongList
 
 			// Parsing the first file for song infos.
 			FileStream fs = new FileStream(kshFiles[0], FileMode.Open);
-			(Dictionary<string, string> kshCheckParse, List<string> _) = ParseKshInfo(fs);
+			(Dictionary<string, string> kshCheckParse, List<string> chartCheck) = ParseKshInfo(fs);
 			fs.Close();
 
 			data["label"] = label;
@@ -38,8 +38,19 @@ namespace SongList
 			data["version"] = "3";
 			data["inf_ver"] = "3";
 
-			// Parsing for Charts
-			foreach (string kshFile in kshFiles)
+            // Detect if some object is in 1st Measure (Shift with +1 measure)
+            Chart checkVoxChart = new Chart(chartCheck, kshCheckParse["t"], false);
+            bool shift;
+            if (checkVoxChart.SomethingIsInFirstMeasure())
+                shift = true;
+            else
+                shift = false;
+
+            double offset = checkVoxChart.FirstMesureLength();
+
+
+            // Parsing for Charts
+            foreach (string kshFile in kshFiles)
 			{
 				FileStream fs2 = new FileStream(kshFile, FileMode.Open);
 				(Dictionary<string, string> kshParse, List<string> chart) = ParseKshInfo(fs2);
@@ -47,23 +58,23 @@ namespace SongList
 
 				if		(kshParse["difficulty"] == "light")
 				{
-					charts		[SongList.DIFS[0]] = new Chart(chart);
+					charts		[SongList.DIFS[0]] = new Chart(chart, kshParse["t"], shift);
 					difficulty	[SongList.DIFS[0]] = int.Parse(kshParse["level"]);
 				}
 				else if	(kshParse["difficulty"] == "challenge")
 				{
-					charts		[SongList.DIFS[1]] = new Chart(chart);
+					charts		[SongList.DIFS[1]] = new Chart(chart, kshParse["t"], shift);
 					difficulty	[SongList.DIFS[1]] = int.Parse(kshParse["level"]);
 				}
 				else if (kshParse["difficulty"] == "extended")
 				{
-					charts		[SongList.DIFS[2]] = new Chart(chart);
-					difficulty	[SongList.DIFS[2]] = int.Parse(kshParse["level"]);
+					charts		[SongList.DIFS[2]] = new Chart(chart, kshParse["t"], shift);
+                    difficulty	[SongList.DIFS[2]] = int.Parse(kshParse["level"]);
 				}
 				else if (kshParse["difficulty"] == "infinite")
 				{
-					charts		[SongList.DIFS[3]] = new Chart(chart);
-					difficulty	[SongList.DIFS[3]] = int.Parse(kshParse["level"]);
+					charts		[SongList.DIFS[3]] = new Chart(chart, kshParse["t"], shift);
+                    difficulty	[SongList.DIFS[3]] = int.Parse(kshParse["level"]);
 				}
 			}
 
@@ -76,7 +87,10 @@ namespace SongList
 				throw new Exception("Music file format " + ext + " invalid!");
 
 			string outSoundPath = SongList.cachePath + BaseName() + ".wav";
-			ConvertAndTrimToWav(soundPath, outSoundPath, int.Parse(kshCheckParse["o"]));
+            if (shift)
+			    ConvertAndTrimToWav(soundPath, outSoundPath, int.Parse(kshCheckParse["o"]) - Convert.ToInt32(offset * 1000));
+            else
+                ConvertAndTrimToWav(soundPath, outSoundPath, int.Parse(kshCheckParse["o"]));
 
             songCachePath = outSoundPath + RandomString(10);
             if (!File.Exists(outSoundPath)) throw new FileNotFoundException();

@@ -42,6 +42,11 @@ namespace SongList
                 }
             }
 
+            public int Measure()
+            {
+                return measure;
+            }
+
             //Overwrite
             public override string ToString()
             {
@@ -247,8 +252,10 @@ namespace SongList
         }
 
         // From .ksh
-        public Chart(List<string> chartList)
+        public Chart(List<string> chartList, string initBpm, bool shift)
 		{
+            this.shift = shift;
+
             /****************************************
              initialize variables
             ****************************************/
@@ -328,7 +335,7 @@ namespace SongList
                     continue;
                 }
                 beatTotal = barNbr2beatUnit[index2barNbr[i]] * rowNbrTmp;
-                index2TimePos.Add(i, new TimePos(index2barNbr[i], beatTotal/48 + 1, beatTotal%48));
+                index2TimePos.Add(i, new TimePos(index2barNbr[i] + (shift ? 1 : 0), beatTotal/48 + 1, beatTotal%48));
                 if (char.IsNumber(chartList[i][0]))
                     rowNbrTmp++;
             }
@@ -425,7 +432,7 @@ namespace SongList
                 new Dictionary<char, int>()
                 {
                     {'0', 0}, {'2', 5}, {'5', 12}, {'7', 17}, {'A', 25},
-                    {'C', 30}, {'F', 38}, {'H', 43}, {'K', 50}, {'M', 55},
+                    {'C', 30}, {'F', 38}, {'H', 43}, {'K', 50}, {'M', 55}, {'N', 57},
                     {'P', 63}, {'S', 71}, {'U', 76}, {'X', 83}, {'Z', 88},
                     {'b', 93}, {'e', 101}, {'h', 109}, {'j', 114}, {'m', 121}, {'o', 127}
                 };
@@ -433,7 +440,7 @@ namespace SongList
                 new Dictionary<char, int>()
                 {
                     {'0', 0}, {'2', 5}, {'5', 12}, {'7', 17}, {'A', 25},
-                    {'C', 30}, {'F', 38}, {'H', 43}, {'K', 50}, {'M', 55},
+                    {'C', 30}, {'F', 38}, {'H', 43}, {'K', 50}, {'M', 55}, {'N', 57},
                     {'P', 63}, {'S', 71}, {'U', 76}, {'X', 83}, {'Z', 88},
                     {'b', 93}, {'e', 101}, {'h', 109}, {'j', 114}, {'m', 121}, {'o', 127}
                 };
@@ -499,8 +506,14 @@ namespace SongList
                 if (chartList[i].Length < 5)
                     continue;
                 if (chartList[i].Substring(0, 5) == "beat=")
-                    beat.Add(new Tuple<TimePos, Tuple<int, int>>(index2TimePos[i],
+                {
+                    if (beat.Count == 0)
+                        beat.Add(new Tuple<TimePos, Tuple<int, int>>(new TimePos("001,01,00"),
                         new Tuple<int, int>((int)(chartList[i][5] - '0'), (int)(chartList[i][7] - '0'))));
+                    else
+                        beat.Add(new Tuple<TimePos, Tuple<int, int>>(index2TimePos[i],
+                        new Tuple<int, int>((int)(chartList[i][5] - '0'), (int)(chartList[i][7] - '0'))));
+                }
             }
 
             /****************************************
@@ -509,10 +522,18 @@ namespace SongList
             for (int i = 0; i < chartList.Count; i++)
             {
                 if (chartList[i].Substring(0, 2) == "t=")
-                    bpm.Add(new Tuple<TimePos, double>(index2TimePos[i], 
+                {
+                    if (bpm.Count == 0)
+                        bpm.Add(new Tuple<TimePos, double>(new TimePos("001,01,00"),
                             Convert.ToDouble(chartList[i].Substring(2))));
+                    else
+                        bpm.Add(new Tuple<TimePos, double>(index2TimePos[i],
+                            Convert.ToDouble(chartList[i].Substring(2))));
+                }
             }
-            
+            if (bpm.Count == 0) bpm.Add(new Tuple<TimePos, double>(new TimePos("001,01,00"),
+                            Convert.ToDouble(initBpm)));
+
             /****************************************
                              endPos
             ****************************************/
@@ -542,7 +563,7 @@ namespace SongList
                 writer.Write(b.Item2.Item1);
                 writer.Write('\t');
                 writer.Write(b.Item2.Item2);
-                writer.Write('\n');
+                writer.Write("\r\n");
             }
             writer.Write(@"#END
 
@@ -555,7 +576,7 @@ namespace SongList
                 writer.Write(b.Item2);
                 writer.Write('\t');
                 writer.Write("4");
-                writer.Write('\n');
+                writer.Write("\r\n");
             }
             writer.Write(@"#END
 
@@ -569,7 +590,7 @@ namespace SongList
 #END POSITION
 ");
             writer.Write(endPos);
-            writer.Write('\n');
+            writer.Write("\r\n");
             writer.Write(@"#END
 
 #TAB EFFECT INFO
@@ -671,7 +692,16 @@ namespace SongList
             WriteTrack<Vol>(writer, volR);
             writer.Write(@"#END
 
-//====================================");
+//====================================
+
+//====================================
+// SPCONTROLER INFO
+//====================================
+
+#SPCONTROLER
+001,01,00	AIRL_ScaX	1	0	0.00	1.00	0.00	0.00
+001,01,00	AIRR_ScaX	1	0	0.00	2.00	0.00	0.00
+#END");
 
             writer.Flush();
 			return stream;
@@ -679,6 +709,30 @@ namespace SongList
 		//public Stream ToKsh() { }
 
         // Utils
+
+        public bool SomethingIsInFirstMeasure()
+        {
+            return ((volL.First<Tuple<TimePos, Vol>>().Item1.Measure() == 1) ||
+                    (fxL.First<Tuple<TimePos, Fx>>().Item1.Measure() == 1) ||
+                    (btA.First<Tuple<TimePos, Bt>>().Item1.Measure() == 1) ||
+                    (btB.First<Tuple<TimePos, Bt>>().Item1.Measure() == 1) ||
+                    (btC.First<Tuple<TimePos, Bt>>().Item1.Measure() == 1) ||
+                    (btD.First<Tuple<TimePos, Bt>>().Item1.Measure() == 1) ||
+                    (fxR.First<Tuple<TimePos, Fx>>().Item1.Measure() == 1) ||
+                    (volR.First<Tuple<TimePos, Vol>>().Item1.Measure() == 1));
+        }
+
+        private bool SomethingIsInFirstMeasureUtilList<T>(List<Tuple<TimePos, T>> list)
+        {
+            return (list.First<Tuple<TimePos, T>>().Item1.Measure() == 1);
+        }
+
+        public double FirstMesureLength()
+        {
+            return  Convert.ToDouble(beat.First<Tuple<TimePos, Tuple<int, int>>>().Item2.Item1) /
+                    (Convert.ToDouble(beat.First<Tuple<TimePos, Tuple<int, int>>>().Item2.Item2) / 4.0) *
+                    60.0 / (bpm.First<Tuple<TimePos, double>>().Item2);
+        }
 
         private static void GoToTag(StreamReader sr, string tag)
         {
@@ -697,7 +751,7 @@ namespace SongList
                 sw.Write(b.Item1);
                 sw.Write('\t');
                 sw.Write(b.Item2);
-                sw.Write('\n');
+                sw.Write("\r\n");
             }
         }
 
@@ -718,6 +772,8 @@ namespace SongList
 		private List<Tuple<TimePos, Vol>>	volR;
 
 		private List<Tuple<TimePos, Sp>>	sp;
+
+        private bool shift;
 
 	}
 }
