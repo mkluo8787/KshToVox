@@ -2,7 +2,6 @@
 Form Design/Implementation
 
 	MVC Design
-	XML Parsing
 
 Song
 
@@ -27,5 +26,7 @@ Prompt for unsaved data.
 * #fx <= 12
 
 * beat format is restricted to n/4!
+
+* Toolstrip: Close
 
 Fill in the infos.

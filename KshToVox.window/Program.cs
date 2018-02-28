@@ -76,8 +76,7 @@ namespace KshToVox.window
 				SetStatus("KFC song list has not loaded!");
 				return;
 			}
-			SetStatus("New K-Shoot song loaded.");
-			songList.AddKshSong(path);
+			SetStatus("New K-Shoot song loaded with id = " + songList.AddKshSong(path));
 		}
 
 		public static void DeleteSong()

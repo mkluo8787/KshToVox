@@ -21,6 +21,11 @@ namespace SongList
 			Directory.CreateDirectory(cachePath);
 		}
 
+		~SongList()
+		{
+			Directory.Delete(cachePath, true);
+		}
+
 		// From KFC
 		public void Load(string kfcPath_)
 		{
@@ -62,7 +67,7 @@ namespace SongList
 			loaded = true;
 		}
 
-		public void AddKshSong(string path)
+		public int AddKshSong(string path)
 		{
 			int newId = 0;
 			foreach (int id in Enumerable.Range(1, 1024))
@@ -74,6 +79,8 @@ namespace SongList
 			if (newId == 0) throw new Exception("Song list is full!");
 
 			songs[newId] = new Song(newId.ToString(), path);
+
+			return newId;
 		}
 
 		public void DeleteId(int id)
@@ -85,7 +92,7 @@ namespace SongList
 		// To KFC
 		public void Save()
 		{
-			string dbPath = kfcPath + "\\data\\others\\music_db_savetest.xml";
+			string dbPath = kfcPath + "\\data\\others\\music_db.xml";
 
 			XElement root = new XElement("mdb");
 			foreach (KeyValuePair<int, Song> songId in songs)
@@ -93,7 +100,7 @@ namespace SongList
 				int id		= songId.Key;
 				Song song	= songId.Value;
 
-				string soundPath = kfcPath + "\\data\\sound\\" + song.BaseName() + ".2dx2";
+				string soundPath = kfcPath + "\\data\\sound\\" + song.BaseName() + ".2dx";
 				FileStream osstream = new FileStream(soundPath, FileMode.Create);
 
 				BinaryWriter bw = new BinaryWriter(osstream);
@@ -166,7 +173,11 @@ namespace SongList
 
 		public List<KeyValuePair<int, Song>> List()
 		{
-			return songs.ToList<KeyValuePair<int, Song>>();
+			List<KeyValuePair<int, Song>> list = new List<KeyValuePair<int, Song>>();
+			foreach (int id in Enumerable.Range(1, 1024))
+				if (songs.ContainsKey(id))
+					list.Add(new KeyValuePair<int, Song>(id, songs[id]));
+			return list;
 		}
 
 		public bool Loaded() { return loaded; }

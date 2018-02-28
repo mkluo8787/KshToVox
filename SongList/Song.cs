@@ -26,8 +26,7 @@ namespace SongList
 			if (kshFiles.Length == 0) throw new Exception("No .ksh found in this folder!");
 
 			// Parsing the first file for song infos.
-			FileStream fs;
-			fs = new FileStream(kshFiles[0], FileMode.Open);
+			FileStream fs = new FileStream(kshFiles[0], FileMode.Open);
 			(Dictionary<string, string> kshCheckParse, List<string> _) = ParseKshInfo(fs);
 			fs.Close();
 
@@ -42,9 +41,9 @@ namespace SongList
 			// Parsing for Charts
 			foreach (string kshFile in kshFiles)
 			{
-				fs = new FileStream(kshFile, FileMode.Open);
-				(Dictionary<string, string> kshParse, List< string > chart) = ParseKshInfo(fs);
-				fs.Close();
+				FileStream fs2 = new FileStream(kshFile, FileMode.Open);
+				(Dictionary<string, string> kshParse, List<string> chart) = ParseKshInfo(fs2);
+				fs2.Close();
 
 				if		(kshParse["difficulty"] == "light")
 				{
@@ -70,10 +69,14 @@ namespace SongList
 
 			// Parsing for wav
 
-			string outSoundPath = SongList.cachePath + BaseName() + ".wav";
-			FileStream osstream = new FileStream(outSoundPath, FileMode.Create);
+			string soundPath = kshPath + "\\" + kshCheckParse["m"].Split(';').ElementAt<string>(0);
 
-			osstream.Close();
+			string ext = Path.GetExtension(soundPath);
+			if (!((ext == ".mp3") || (ext == ".ogg") || (ext == ".wav")))
+				throw new Exception("Music file format " + ext + " invalid!");
+
+			string outSoundPath = SongList.cachePath + BaseName() + ".wav";
+			ConvertAndTrimToWav(soundPath, outSoundPath, int.Parse(kshCheckParse["o"]));
 		}
 
 		// From KFC
@@ -121,6 +124,25 @@ namespace SongList
 			return new FileStream(outSoundPath, FileMode.Open);
 		}
 
+		private static void ConvertAndTrimToWav(string src, string dest, int trimMs)
+		{
+            double trimSec = System.Convert.ToDouble(trimMs) * 0.001;
+
+            System.Diagnostics.Process process = new System.Diagnostics.Process();
+			System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
+			startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
+			startInfo.FileName = "sox.exe";
+            if (trimMs > 0)
+			    startInfo.Arguments = "-G -q \"" + src + "\" -e ms-adpcm \"" + dest + "\" trim " + trimSec.ToString() + " -0.0";
+            else if (trimMs < 0)
+                startInfo.Arguments = "-G -q \"" + src + "\" -e ms-adpcm \"" + dest + "\" pad " + (-trimSec).ToString() + " 0.0";
+            else
+                startInfo.Arguments = "-G -q \"" + src + "\" -e ms-adpcm \"" + dest;
+            process.StartInfo = startInfo;
+            Console.WriteLine(startInfo.Arguments);
+			process.Start();
+		}
+
 		// Utils
 		public string Data(string tag) { return data[tag]; }
 
@@ -142,26 +164,17 @@ namespace SongList
 		private static string MakeAscii(string[] tokens)
 		{
 			string ascii = "";
+			char[] headTailTrim = { '_', ' ' };
 			Regex rgx = new Regex("[^a-zA-Z0-9 -]");
 
 			foreach (string token in tokens)
 			{
 				string tokenRgx = rgx.Replace(token, "");
-				ascii += tokenRgx.Replace(' ', '_').Replace('-', '_').ToLower() + "_";
+				ascii += tokenRgx.Replace(' ', '_').Replace('-', '_').ToLower().Trim(headTailTrim) + "_";
 			}
 			ascii = ascii.Remove(ascii.Length - 1);
 
-			return Encoding.ASCII.GetString(
-				Encoding.Convert(
-					Encoding.UTF8,
-					Encoding.GetEncoding(
-						Encoding.ASCII.EncodingName,
-						new EncoderReplacementFallback("_"),
-						new DecoderExceptionFallback()
-					),
-					Encoding.UTF8.GetBytes(ascii)
-				)
-			);
+			return ascii;
 		}
 
 		private static string Suffix(string dif)
@@ -186,11 +199,14 @@ namespace SongList
 
 				// The start of chart
 				if (line == "--")
-				{
+				{ 
 					while (sr.Peek() >= 0)
-						chart.Add(sr.ReadLine());
-
-					//data["chart"] = sr.ReadToEnd();
+					{
+						string chartLine = sr.ReadLine();
+						if (chartLine.Contains("#define_fx"))
+							break;
+						chart.Add(chartLine);
+					}
 					break;
 				}
 
