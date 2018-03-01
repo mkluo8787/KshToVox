@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Xml.Linq;
 
+using IfsParse;
+
 namespace SongList
 {
 	public class SongList
@@ -33,8 +35,14 @@ namespace SongList
 
 			kfcPath = kfcPath_;
 
-			// DB backup!
-			string dbPath = kfcPath + "\\data\\others\\music_db.xml";
+            // Parse Ifs Files (Charts, Jackets) into Cache
+            // Jackets are not parsed for now, will be included in further version
+            Ifs vox01 = new Ifs(kfcPath + "\\data\\others\\vox_ifs\\vox_01.ifs", Ifs.IfsParseType.Chart);
+            vox01.Cache(cachePath);
+            vox01.Close();
+
+            // DB backup?
+            string dbPath = kfcPath + "\\data\\others\\music_db.xml";
 			if (!File.Exists(dbPath)) throw new FileNotFoundException();
 			FileStream stream = new FileStream(dbPath, FileMode.Open);
 
@@ -56,9 +64,9 @@ namespace SongList
 				Dictionary<string, int> difficulty = new Dictionary<string, int>();
 
 				foreach (string dif in DIFS)
-					difficulty[dif]	= int.Parse(songXml.Element("difficulty").Element(dif)		.Element("difnum").Value);
+					difficulty[dif]	= int.Parse(songXml.Element("difficulty").Element(dif).Element("difnum").Value);
 
-				Song song = new Song(data, difficulty, kfcPath);
+				Song song = new Song(data, difficulty, kfcPath, false);
 				songs[id] = song;
 			}
 
@@ -104,34 +112,10 @@ namespace SongList
 				int id		= songId.Key;
 				Song song	= songId.Value;
 
-				string soundPath = kfcPath + "\\data\\sound\\" + song.BaseName() + ".2dx";
-				FileStream osstream = new FileStream(soundPath, FileMode.Create);
-
-				BinaryWriter bw = new BinaryWriter(osstream);
-
-				bw.BaseStream.Position = 0x48;
-				bw.Write(0x0000004C);
-				bw.Write(0x39584432);
-				bw.Write(0x00000018);
-				bw.Write(0x00000000); // Will be replaced with sound length later
-				bw.Write(0xFFFF3231);
-				bw.Write(0x00010040);
-				bw.Write(0x00000000);
-
-                FileStream fs = song.GetWav();
-                fs.CopyTo(osstream);
-                fs.Close();
-
-				long endPos = osstream.Position;
-				bw.BaseStream.Position = 0x54;
-				bw.Write((int)(endPos - 0x64));
-
-				osstream.Close();
-
-                // Write .vox
-
+                // Write .vox and 2dx
                 song.Save(kfcPath);
 
+                // Write to db
                 XElement music = new XElement("music", new XAttribute("id", id));
 
 				XElement info = new XElement("info");

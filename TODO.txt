@@ -3,19 +3,11 @@ Form Design/Implementation
 
 	MVC Design
 
-Song
-
-	2dx Converter
-	Song slice
-
 Chart
 	
 	FxEffect Enumeration
 	SpEffect Enumeration
-	.ksh Parsing
-	.vox Output
 
-Prompt for unsaved data.
 
 * the 5th line in the vol track may be the stop effect?
 
@@ -29,6 +21,8 @@ Prompt for unsaved data.
 
 * Toolstrip: Close
 
-# Form Title: show "*" when unsaved
-
 Fill in the infos.
+
+Vox versions handle.
+
+End Pos = Last Measure + 2

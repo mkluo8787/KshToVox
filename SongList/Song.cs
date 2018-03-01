@@ -92,20 +92,25 @@ namespace SongList
             else
                 ConvertAndTrimToWav(soundPath, outSoundPath, int.Parse(kshCheckParse["o"]));
 
-            songCachePath = outSoundPath + RandomString(10);
-            if (!File.Exists(outSoundPath)) throw new FileNotFoundException();
-            System.IO.File.Move(outSoundPath, songCachePath);
+            songCachePath = outSoundPath;
+            loaded = true;
         }
 
 		// From KFC
 		public Song(Dictionary<string, string>	data_,
 					Dictionary<string, int>		difficulty_,
-					string kfcPath)
+					string kfcPath,
+                    bool load)
 		{
-			data = data_;
+            data = data_;
 			difficulty = difficulty_;
 
-			foreach (KeyValuePair<string, int> difInfo in difficulty)
+            if (!load) return; 
+            // load:    If false, skips the entire .vox & .2dx parsing procedure.
+
+            // Make Charts
+
+            foreach (KeyValuePair<string, int> difInfo in difficulty)
 			{
 				if (difInfo.Value == 0) continue;
 
@@ -121,7 +126,7 @@ namespace SongList
             // .2dx to wav
 
             string soundPath = kfcPath + "\\data\\sound\\" + BaseName() + ".2dx";
-            string outSoundPath = SongList.cachePath + BaseName() + ".wav" + RandomString(10);
+            string outSoundPath = SongList.cachePath + BaseName() + ".wav";
             if (!File.Exists(soundPath)) throw new FileNotFoundException();
             FileStream sstream = new FileStream(soundPath, FileMode.Open);
             FileStream osstream = new FileStream(outSoundPath, FileMode.Create);
@@ -133,11 +138,14 @@ namespace SongList
             osstream.Close();
 
             songCachePath = outSoundPath;
+            loaded = true;
         }
 
-        // Write to Vox
+        // Write to Vox and 2dx
         public void Save(string kfcPath)
         {
+            if (!loaded) return;
+
             foreach (KeyValuePair<string, int> difInfo in difficulty)
             {
                 if (difInfo.Value == 0) continue;
@@ -152,10 +160,34 @@ namespace SongList
                 mstream.Close();
                 cstream.Close();
             }
+
+            string soundPath = kfcPath + "\\data\\sound\\" + BaseName() + ".2dx";
+            FileStream osstream = new FileStream(soundPath, FileMode.Create);
+
+            BinaryWriter bw = new BinaryWriter(osstream);
+
+            bw.BaseStream.Position = 0x48;
+            bw.Write(0x0000004C);
+            bw.Write(0x39584432);
+            bw.Write(0x00000018);
+            bw.Write(0x00000000); // Will be replaced with sound length later
+            bw.Write(0xFFFF3231);
+            bw.Write(0x00010040);
+            bw.Write(0x00000000);
+
+            FileStream fs = GetWav();
+            fs.CopyTo(osstream);
+            fs.Close();
+
+            long endPos = osstream.Position;
+            bw.BaseStream.Position = 0x54;
+            bw.Write((int)(endPos - 0x64));
+
+            osstream.Close();
         }
 
 		// Music (wav ms-adpcm)
-		public FileStream GetWav()
+		private FileStream GetWav()
 		{
 			if (!File.Exists(songCachePath)) throw new FileNotFoundException();
 			return new FileStream(songCachePath, FileMode.Open);
@@ -277,6 +309,7 @@ namespace SongList
 		Dictionary<string, int> difficulty = new Dictionary<string, int>();
 
         string songCachePath;
+        bool loaded = false;
 
 		// Charts
 		private Dictionary<string, Chart> charts = new Dictionary<string, Chart>();
