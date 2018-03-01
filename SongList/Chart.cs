@@ -57,11 +57,58 @@ namespace SongList
         }
 		class FxEffect
 		{
-			enum FxType
-			{
-			}
-
-			private double attributes;
+            public enum FxType
+            {
+                Retrigger,
+                Gate,
+                Flanger,
+                PitchShift,
+                BitCrusher,
+                Phaser,
+                Wobble,
+                TapeStop,
+                Echo,
+                SideChain,
+                _effect8,
+                None
+            }
+            static private Dictionary<string, List<double>> defaultAttributes = new Dictionary<string, List<double>>()
+            {
+                { "Retrigger;8",  new List<double>{ 1, 4, 95.00, 2.00, 1.00, 0.85, 0.15 } },
+                { "Retrigger;12", new List<double>{ 1, 6, 95.00, 2.00, 1.00, 0.85, 0.15 } },
+                { "Retrigger;16", new List<double>{ 1, 8, 95.00, 2.00, 1.00, 0.75, 0.1 } },
+                { "Retrigger;24", new List<double>{ 1, 12, 95.00, 2.00, 1.00, 0.80, 0.1 } },
+                { "Retrigger;32", new List<double>{ 1, 16, 95.00, 2.00, 1.00, 0.87, 0.13 } },
+                { "Gate;4",       new List<double>{ 2, 98.00, 2, 1.00 } },
+                { "Gate;8",       new List<double>{ 2, 98.00, 4, 1.00 } },
+                { "Gate;12",      new List<double>{ 2, 98.00, 6, 1.00 } },
+                { "Gate;16",      new List<double>{ 2, 98.00, 8, 1.00 } },
+                { "Gate;24",      new List<double>{ 2, 98.00, 12, 1.00 } },
+                { "Gate;32",      new List<double>{ 2, 98.00, 16, 1.00 } },
+                { "Flanger",      new List<double>{ 3, 75.00, 2.00, 0.50, 90, 2.00 } },
+                { "PitchShift;12",new List<double>{ 9, 72.00, 12.00 } },
+                { "BitCrusher;10",new List<double>{ 7, 100.00, 12 } },
+                { "Phaser",       new List<double>{0} },
+                { "Wobble;12",    new List<double>{ 6, 0, 3, 80.00, 500.00, 18000.00, 4.00, 1.40 } },
+                { "TapeStop;50",  new List<double>{ 4, 100.00, 8.00, 0.40 } },
+                { "Echo;4;60",    new List<double>{ 1, 4, 100.00, 4.00, 0.60, 1.00, 0.85 } },
+                { "SideChain",    new List<double>{ 5, 90.00, 1.00, 45, 50, 60 } },
+                { "None",         new List<double>{0} },
+            };
+            public FxEffect(FxType type, string strType)
+            {
+                this.type = type;
+                if (defaultAttributes.ContainsKey(strType))
+                    attributes = defaultAttributes[strType];
+                else
+                    throw new Exception("invalid FxType");
+            }
+            public void Print()
+            {
+                Console.WriteLine(this.type);
+            }
+            FxType type;
+            private List<double> attributes;
 		}
 		class Sp
 		{
@@ -117,6 +164,11 @@ namespace SongList
             {
                 this.length = length;
             }
+            public Fx(int length, FxEffect effect)
+            {
+                this.length = length;
+                this.effect = effect;
+            }
             public void addLength(int length)
             {
                 this.length += length;
@@ -124,6 +176,7 @@ namespace SongList
             public void Print()
             {
                 Console.WriteLine(this.length);
+                this.effect.Print();
             }
             //Overwrite
             public override string ToString()
@@ -391,7 +444,7 @@ namespace SongList
                            Dictionary<int, int> i2bN, Dictionary<int, int> b2bU, int FXtype)
             {
                 bool isLong = false;
-                string effect;
+                FxEffect effect = new FxEffect(FxEffect.FxType.None, "None");
                 for (int i = 0; i < cL.Count; i++)
                 {
                     if (char.IsNumber(cL[i][0]))
@@ -399,7 +452,8 @@ namespace SongList
                         if (cL[i][FXtype] == '2')
                         {
                             isLong = false;
-                            fx.Add(new Tuple<TimePos, Fx>(index2TimePos[i], new Fx(0)));
+                            effect = new FxEffect(FxEffect.FxType.None, "None");
+                            fx.Add(new Tuple<TimePos, Fx>(index2TimePos[i], new Fx(0, effect)));
                         }
                         else if (cL[i][FXtype] == '1')
                         {
@@ -410,7 +464,7 @@ namespace SongList
                             else
                             {
                                 isLong = true;
-                                fx.Add(new Tuple<TimePos, Fx>(index2TimePos[i], new Fx(b2bU[i2bN[i]])));
+                                fx.Add(new Tuple<TimePos, Fx>(index2TimePos[i], new Fx(b2bU[i2bN[i]], effect)));
                             }
                         }
                         else
@@ -421,10 +475,25 @@ namespace SongList
                     else if (cL[i].Length < 5)
                         continue;
                     else if (cL[i].Substring(0, 5) == "fx-l=" && FXtype == 5)
-                        effect = cL[i].Substring(5);
+                        effect = parseEffect(cL[i].Substring(5));
                     else if (cL[i].Substring(0, 5) == "fx-r=" && FXtype == 6)
-                        effect = cL[i].Substring(5);
+                        effect = parseEffect(cL[i].Substring(5));
                 }
+            }
+            FxEffect parseEffect(string eff)
+            {
+                if (eff.Length == 0) return new FxEffect(FxEffect.FxType.None, "None");
+                else if (eff[0] == 'R') return new FxEffect(FxEffect.FxType.Retrigger, eff);
+                else if (eff[0] == 'G') return new FxEffect(FxEffect.FxType.Gate, eff);
+                else if (eff[0] == 'F') return new FxEffect(FxEffect.FxType.Flanger, eff);
+                else if (eff[0] == 'B') return new FxEffect(FxEffect.FxType.BitCrusher, eff);
+                else if (eff[0] == 'W') return new FxEffect(FxEffect.FxType.Wobble, eff);
+                else if (eff[0] == 'T') return new FxEffect(FxEffect.FxType.TapeStop, eff);
+                else if (eff[0] == 'E') return new FxEffect(FxEffect.FxType.Echo, eff);
+                else if (eff[0] == 'S') return new FxEffect(FxEffect.FxType.SideChain, eff);
+                else if (eff[1] == 'i') return new FxEffect(FxEffect.FxType.PitchShift, eff);
+                else if (eff[1] == 'h') return new FxEffect(FxEffect.FxType.Phaser, eff);
+                else return new FxEffect(FxEffect.FxType.None, "None");
             }
             getFXinfo(this.fxL, chartList, index2TimePos, index2barNbr, barNbr2beatUnit, 5);
             getFXinfo(this.fxR, chartList, index2TimePos, index2barNbr, barNbr2beatUnit, 6);
