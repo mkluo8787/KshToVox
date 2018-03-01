@@ -91,6 +91,10 @@ namespace SongList
             {
                 this.flag = flag;
             }
+            public void setExpand(int expand)
+            {
+                this.expand = expand;
+            }
             public void Print()
             {
                 Console.WriteLine("({0}, {1}, {2})", this.pos, this.flag, this.expand);
@@ -428,24 +432,16 @@ namespace SongList
             /****************************************
                               VOL
             ****************************************/
-            Dictionary<char, int> Pos1 =
-                new Dictionary<char, int>()
-                {
-                    {'0', 0}, {'2', 5}, {'5', 12}, {'7', 17}, {'A', 25},
-                    {'C', 30}, {'F', 38}, {'H', 43}, {'K', 50}, {'M', 55}, {'N', 57},
-                    {'P', 63}, {'S', 71}, {'U', 76}, {'X', 83}, {'Z', 88},
-                    {'b', 93}, {'e', 101}, {'h', 109}, {'j', 114}, {'m', 121}, {'o', 127}
-                };
-            Dictionary<char, int> Pos2 =
-                new Dictionary<char, int>()
-                {
-                    {'0', 0}, {'2', 5}, {'5', 12}, {'7', 17}, {'A', 25},
-                    {'C', 30}, {'F', 38}, {'H', 43}, {'K', 50}, {'M', 55}, {'N', 57},
-                    {'P', 63}, {'S', 71}, {'U', 76}, {'X', 83}, {'Z', 88},
-                    {'b', 93}, {'e', 101}, {'h', 109}, {'j', 114}, {'m', 121}, {'o', 127}
-                };
-            void getVOLinfo(List<Tuple<TimePos, Vol>> vol, List<string> cL, Dictionary<int, TimePos> i2T,
-                           Dictionary<char, int> p1, Dictionary<char, int> p2, int VOLtype)
+            Dictionary<char, int> Pos = new Dictionary<char, int>();
+            for (int i = 48; i < 58; i++)
+                Pos[(char)i] = (int)(Math.Round(127.0 / 50.0 * (i-48)));
+            for (int i = 65; i < 91; i++)
+                Pos[(char)i] = (int)(Math.Round(127.0 / 50.0 * (i-55)));
+            for (int i = 97; i < 112; i++)
+                Pos[(char)i] = (int)(Math.Round(127.0 / 50.0 * (i-61)));
+            
+            void getVOLinfo(List<Tuple<TimePos, Vol>> vol, List<string> cL,
+                            Dictionary<int, TimePos> i2T, int VOLtype)
             {
                 bool inLine = false;
                 bool expand = false;
@@ -461,19 +457,12 @@ namespace SongList
                                 inLine = expand = false;
                             }
                         }
-                        else if (p2.ContainsKey(cL[i][VOLtype]))
+                        else if (Pos.ContainsKey(cL[i][VOLtype]))
                         {
+                            vol.Add(new Tuple<TimePos, Vol>(index2TimePos[i],
+                                        new Vol(Pos[cL[i][VOLtype]], 0, 1)));
                             if (expand)
-                            {
-                                vol.Add(new Tuple<TimePos, Vol>(index2TimePos[i],
-                                        new Vol(p2[cL[i][VOLtype]], 0, 2)));
-                            }
-                            else
-                            {
-                                char c = cL[i][VOLtype];
-                                vol.Add(new Tuple<TimePos, Vol>(index2TimePos[i],
-                                        new Vol(p1[c], 0, 1)));
-                            }
+                                vol[vol.Count - 1].Item2.setExpand(2);
                             if (!inLine)
                             {
                                 inLine = true;
@@ -481,22 +470,16 @@ namespace SongList
                             }
                         }
                     }
-                    else if (cL[i] == "laserrange_l=2x" && VOLtype == 8)
-                        expand = true;
-                    else if (cL[i] == "laserrange_r=2x" && VOLtype == 9)
-                        expand = true;
+                    else if (cL[i] == "laserrange_l=2x" && VOLtype == 8) expand = true;
+                    else if (cL[i] == "laserrange_r=2x" && VOLtype == 9) expand = true;
                 }
             }
-            getVOLinfo(this.volL, chartList, index2TimePos, Pos1, Pos2, 8);
-            getVOLinfo(this.volR, chartList, index2TimePos, Pos1, Pos2, 9);
+            getVOLinfo(this.volL, chartList, index2TimePos, 8);
+            getVOLinfo(this.volR, chartList, index2TimePos, 9);
             for (int i = 1; i < volL.Count; i++)
-            {
                 volL[i].Item1.fixSlam(volL[i - 1].Item1);
-            }
             for (int i = 1; i < volR.Count; i++)
-            {
                 volR[i].Item1.fixSlam(volR[i - 1].Item1);
-            }
 
             /****************************************
                               beat
