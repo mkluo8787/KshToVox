@@ -107,6 +107,10 @@ namespace SongList
             {
                 return this.type == FxType.None;
             }
+            public bool isPhaser()
+            {
+                return this.type == FxType.Phaser;
+            }
             // override equals
             public override bool Equals(object obj)
             {
@@ -130,6 +134,14 @@ namespace SongList
             public void Print()
             {
                 Console.WriteLine(this.type);
+            }
+            //Overwrite
+            public override string ToString()
+            {
+                string tmp = "";
+                for (int i = 0; i<attributes.Count-1; i++)
+                    tmp = tmp + attributes[i].ToString() + ",\t";
+                return tmp + attributes[attributes.Count-1].ToString();
             }
             FxType type;
             private List<double> attributes;
@@ -220,6 +232,10 @@ namespace SongList
             {
                 this.length += length;
             }
+            public FxEffect getFxEffect()
+            {
+                return this.effect;
+            }
             public void Print()
             {
                 Console.WriteLine(this.length);
@@ -228,8 +244,7 @@ namespace SongList
             //Overwrite
             public override string ToString()
             {
-                return length.ToString() + "\t" +
-                        ((length == 0) ? 255 : 2).ToString();
+                return length.ToString() + "\t" ;
             }
         }
 		class Bt
@@ -552,6 +567,8 @@ namespace SongList
             void toFxList(ref FxEffect fe)
             {
                 if (fe.isNone()) return;
+                // change "Phaser" effect's priority
+                if (fe.isPhaser()) return;
                 if (this.fxList.Count == 12)
                 {
                     // FXeffect type over 12
@@ -790,7 +807,16 @@ namespace SongList
 #END
 
 #FXBUTTON EFFECT INFO
-#END
+");
+            foreach (FxEffect fL in fxList)
+            {
+                writer.Write(fL);
+                writer.Write("\r\n");
+                writer.Write("0,	0,	0,	0,	0,	0,	0\r\n\r\n");
+            }
+            for (int i = fxList.Count; i < 12; i++)
+                writer.Write("1, 4, 95.00, 2.00, 1.00, 0.85, 0.15\r\n0, 0, 0, 0, 0, 0, 0\r\n\r\n");
+            writer.Write(@"#END
 
 #TAB PARAM ASSIGN INFO
 0,	0,	0.00,	0.00
@@ -835,7 +861,7 @@ namespace SongList
 
 #TRACK2
 ");
-            WriteTrack<Fx>(writer, fxL);
+            WriteTrackFx(writer, fxL);
             writer.Write(@"#END
 
 //====================================
@@ -870,7 +896,7 @@ namespace SongList
 
 #TRACK7
 ");
-            WriteTrack<Fx>(writer, fxR);
+            WriteTrackFx(writer, fxR);
             writer.Write(@"#END
 
 //====================================
@@ -882,15 +908,22 @@ namespace SongList
 
 //====================================
 
+
 //====================================
 // SPCONTROLER INFO
 //====================================
 
 #SPCONTROLER
+001,01,00	Realize	3	0	36.12	60.12	110.12	0.00
+001,01,00	Realize	4	0	0.62	0.72	1.03	0.00
 001,01,00	AIRL_ScaX	1	0	0.00	1.00	0.00	0.00
 001,01,00	AIRR_ScaX	1	0	0.00	2.00	0.00	0.00
-#END");
+");
+            WriteTrack<Sp>(writer, sp);
+            writer.Write(@"#END
 
+//====================================
+");
             writer.Flush();
 			return stream;
 		}
@@ -939,6 +972,30 @@ namespace SongList
                 sw.Write(b.Item1);
                 sw.Write('\t');
                 sw.Write(b.Item2);
+                sw.Write("\r\n");
+            }
+        }
+
+        private void WriteTrackFx(StreamWriter sw, List<Tuple<TimePos, Fx>> data)
+        {
+            foreach (Tuple<TimePos, Fx> b in data)
+            {
+                sw.Write(b.Item1);
+                sw.Write('\t');
+                bool found = false;
+                for (int i=0; i<fxList.Count; i++)
+                {
+                    if (b.Item2.getFxEffect() == fxList[i])
+                    {
+                        sw.Write(b.Item2 + (i+2).ToString());
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found)
+                {
+                    sw.Write(b.Item2 + (255).ToString());
+                }
                 sw.Write("\r\n");
             }
         }
