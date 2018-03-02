@@ -5,8 +5,7 @@ Form Design/Implementation
 
 Chart
 	
-	FxEffect Enumeration
-	SpEffect Enumeration
+	Flip
 
 
 * the 5th line in the vol track may be the stop effect?
@@ -32,7 +31,5 @@ sox exe/dll pack
 selfmade & original chart grouping
 
 preview music
-
-min max bpm
 
 find list size
