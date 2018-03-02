@@ -26,3 +26,9 @@ Fill in the infos.
 Vox versions handle.
 
 End Pos = Last Measure + 2
+
+sox exe/dll pack
+
+selfmade & original chart grouping
+
+preview music

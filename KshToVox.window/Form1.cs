@@ -19,16 +19,24 @@ namespace KshToVox.window
 		public Form()
 		{
 			InitializeComponent();
-		}
+            //SongListTextBox.DataSource = Program.GetSongList();
+            foreach (var item in Program.GetSongList())
+                SongListTextBox.Items.Add(item);
+        }
 
 		private void UpdateView()
 		{
             this.Invoke((MethodInvoker)delegate
             {
-                SongListTextBox.DataSource = null;
-                SongListTextBox.DataSource = Program.GetSongList();
+            //SongListTextBox.DataSource = null;
+            //SongListTextBox.DataSource = Program.GetSongList();
 
-                SongListTextBox.SelectedIndex = Program.NewSongIndex();
+                for (int i = 0; i < SongListTextBox.Items.Count; ++i)
+                {
+                    SongListTextBox.Items[i] = Program.GetSongListId(i + 1);
+                }
+                
+                SongListTextBox.SelectedIndex = Program.GetSelectedIndex() - 1;
 
                 UpdateViewStatic();
             });
@@ -39,8 +47,8 @@ namespace KshToVox.window
             Text = Program.GetTitle();
 
 			Dictionary<string, string> labels = Program.GetLabels();
-			label_title.Text = labels["title"];
-			label_artist.Text = labels["artist"];
+			label_title.Text = labels["title_name"];
+			label_artist.Text = labels["artist_name"];
 
 			toolStripStatusLabel1.Text = Program.GetStatus();
             toolStripStatusLabel3.Text = Program.GetStatusR();

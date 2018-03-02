@@ -40,11 +40,11 @@
             this.splitContainer2 = new System.Windows.Forms.SplitContainer();
             this.button3 = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
+            this.label1 = new System.Windows.Forms.Label();
             this.label_artist = new System.Windows.Forms.Label();
             this.label_title = new System.Windows.Forms.Label();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
-            this.label1 = new System.Windows.Forms.Label();
             this.toolStripStatusLabel2 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabel3 = new System.Windows.Forms.ToolStripStatusLabel();
             this.menuStrip1.SuspendLayout();
@@ -188,6 +188,15 @@
             this.button2.UseVisualStyleBackColor = true;
             this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(47, 251);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(243, 12);
+            this.label1.TabIndex = 2;
+            this.label1.Text = "Drag and drop folder here to import K-Shoot song.";
+            // 
             // label_artist
             // 
             this.label_artist.AutoSize = true;
@@ -222,19 +231,10 @@
             this.toolStripStatusLabel1.Size = new System.Drawing.Size(450, 17);
             this.toolStripStatusLabel1.Text = "Welcome to use KshToVox. Load or drag a KFC folder to the left region to start.";
             // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(47, 251);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(243, 12);
-            this.label1.TabIndex = 2;
-            this.label1.Text = "Drag and drop folder here to import K-Shoot song.";
-            // 
             // toolStripStatusLabel2
             // 
             this.toolStripStatusLabel2.Name = "toolStripStatusLabel2";
-            this.toolStripStatusLabel2.Size = new System.Drawing.Size(105, 17);
+            this.toolStripStatusLabel2.Size = new System.Drawing.Size(238, 17);
             this.toolStripStatusLabel2.Spring = true;
             // 
             // toolStripStatusLabel3
