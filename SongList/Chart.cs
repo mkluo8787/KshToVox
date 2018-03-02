@@ -103,6 +103,30 @@ namespace SongList
                 else
                     throw new Exception("invalid FxType");
             }
+            public bool isNone()
+            {
+                return this.type == FxType.None;
+            }
+            // override equals
+            public override bool Equals(object obj)
+            {
+                return obj is FxEffect && this == (FxEffect)obj;
+            }
+            public override int GetHashCode()
+            {
+                double tmp = 0;
+                foreach (var att in attributes)
+                    tmp += att;
+                return (int)tmp;
+            }
+            public static bool operator == (FxEffect x, FxEffect y)
+            {
+                return x.attributes.SequenceEqual(y.attributes);
+            }
+            public static bool operator !=(FxEffect x, FxEffect y)
+            {
+                return !x.attributes.SequenceEqual(y.attributes);
+            }
             public void Print()
             {
                 Console.WriteLine(this.type);
@@ -126,13 +150,13 @@ namespace SongList
 			private int	flip;
 			private int	filter;
 			private int	expand;
-            public Vol(int pos, int flag, int expand)
+            public Vol(int pos, int flag, int filter, int expand)
             {
                 this.pos = pos;
                 this.flag = flag;
-                this.expand = expand;
                 this.flip = 0;
-                this.filter = 0;
+                this.filter = filter;
+                this.expand = expand;
             }
             public void setFlag(int flag)
             {
@@ -269,6 +293,7 @@ namespace SongList
                 list.Add(new Tuple<TimePos, Vol>(new TimePos(tokens[0]),
                             new Vol(int.Parse(tokens[1]),
                                     int.Parse(tokens[2]),
+                                    int.Parse(tokens[4]),
                                     int.Parse(tokens[5]))));
             }
             return list;
@@ -475,9 +500,15 @@ namespace SongList
                     else if (cL[i].Length < 5)
                         continue;
                     else if (cL[i].Substring(0, 5) == "fx-l=" && FXtype == 5)
+                    {
                         effect = parseEffect(cL[i].Substring(5));
+                        toFxList(ref effect);
+                    }
                     else if (cL[i].Substring(0, 5) == "fx-r=" && FXtype == 6)
+                    {
                         effect = parseEffect(cL[i].Substring(5));
+                        toFxList(ref effect);
+                    }
                 }
             }
             FxEffect parseEffect(string eff)
@@ -495,9 +526,26 @@ namespace SongList
                 else if (eff[1] == 'h') return new FxEffect(FxEffect.FxType.Phaser, eff);
                 else return new FxEffect(FxEffect.FxType.None, "None");
             }
+            void toFxList(ref FxEffect fe)
+            {
+                if (fe.isNone()) return;
+                if (this.fxList.Count == 12)
+                {
+                    // FXeffect type over 12
+                    if (!this.fxList.Contains(fe))
+                    {
+                        fe = new FxEffect(FxEffect.FxType.None, "None");
+                        // should throw some exception
+                        Console.WriteLine("too many type of fxEffect");
+                        return;
+                    }
+                }
+                else if (!this.fxList.Contains(fe))
+                    this.fxList.Add(fe);
+            }
             getFXinfo(this.fxL, chartList, index2TimePos, index2barNbr, barNbr2beatUnit, 5);
             getFXinfo(this.fxR, chartList, index2TimePos, index2barNbr, barNbr2beatUnit, 6);
-
+            
             /****************************************
                               VOL
             ****************************************/
@@ -514,6 +562,7 @@ namespace SongList
             {
                 bool inLine = false;
                 bool expand = false;
+                int flt = 0;
                 for (int i = 0; i < cL.Count; i++)
                 {
                     if (char.IsNumber(cL[i][0]))
@@ -529,7 +578,7 @@ namespace SongList
                         else if (Pos.ContainsKey(cL[i][VOLtype]))
                         {
                             vol.Add(new Tuple<TimePos, Vol>(index2TimePos[i],
-                                        new Vol(Pos[cL[i][VOLtype]], 0, 1)));
+                                        new Vol(Pos[cL[i][VOLtype]], 0, flt, 1)));
                             if (expand)
                                 vol[vol.Count - 1].Item2.setExpand(2);
                             if (!inLine)
@@ -541,6 +590,10 @@ namespace SongList
                     }
                     else if (cL[i] == "laserrange_l=2x" && VOLtype == 8) expand = true;
                     else if (cL[i] == "laserrange_r=2x" && VOLtype == 9) expand = true;
+                    else if (cL[i] == "filtertype=hpf1") flt = 4;
+                    else if (cL[i] == "filtertype=lpf1") flt = 2;
+                    else if (cL[i] == "filtertype=bitc") flt = 5;
+                    else if (cL[i] == "filtertype=peak") flt = 0;
                 }
             }
             getVOLinfo(this.volL, chartList, index2TimePos, 8);
@@ -549,7 +602,10 @@ namespace SongList
                 volL[i].Item1.fixSlam(volL[i - 1].Item1);
             for (int i = 1; i < volR.Count; i++)
                 volR[i].Item1.fixSlam(volR[i - 1].Item1);
-
+            foreach(var xxx in volL)
+            {
+                Console.WriteLine(xxx.Item2);
+            }
             /****************************************
                               beat
             ****************************************/
