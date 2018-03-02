@@ -7,10 +7,13 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Xml.Linq;
 
+using IfsParse;
+
 namespace SongList
 {
 	public class SongList
 	{
+        private readonly static int listSize = 1200;
 		public readonly static string[] DIFS = { "novice", "advanced", "exhaust", "infinite" };
 		public readonly static string cachePath = System.IO.Path.GetDirectoryName(
 			System.Reflection.Assembly.GetExecutingAssembly().Location
@@ -18,7 +21,10 @@ namespace SongList
 
 		public SongList()
 		{
-			Directory.CreateDirectory(cachePath);
+            songs = new Song[listSize];
+            for (int id = 0; id < listSize; ++id)
+                songs[id] = new Song();
+            Directory.CreateDirectory(cachePath);
 		}
 
 		~SongList()
@@ -29,12 +35,18 @@ namespace SongList
 		// From KFC
 		public void Load(string kfcPath_)
 		{
-			songs.Clear();
+			Clear();
 
 			kfcPath = kfcPath_;
 
-			// DB backup!
-			string dbPath = kfcPath + "\\data\\others\\music_db.xml";
+            // Parse Ifs Files (Charts, Jackets) into Cache
+            // Jackets are not parsed for now, will be included in further version
+            //Ifs vox01 = new Ifs(kfcPath + "\\data\\others\\vox_ifs\\vox_02.ifs", Ifs.IfsParseType.Chart);
+            //vox01.Cache(cachePath);
+            //vox01.Close();
+
+            // DB backup?
+            string dbPath = kfcPath + "\\data\\others\\music_db.xml";
 			if (!File.Exists(dbPath)) throw new FileNotFoundException();
 			FileStream stream = new FileStream(dbPath, FileMode.Open);
 
@@ -45,20 +57,35 @@ namespace SongList
 				Dictionary<string, string> data = new Dictionary<string, string>();
 
 				int id = int.Parse(songXml.Attribute("id").Value);
-				data["label"]	= songXml.Element("info").Element("label").Value;
-				data["title"]	= songXml.Element("info").Element("title_name").Value;
-				data["artist"]	= songXml.Element("info").Element("artist_name").Value;
-				data["ascii"]	= songXml.Element("info").Element("ascii").Value;
-				data["version"]	= songXml.Element("info").Element("version").Value;
-				data["inf_ver"]	= songXml.Element("info").Element("inf_ver").Value;
 
-				// Difficulties. 0 = dummy.
-				Dictionary<string, int> difficulty = new Dictionary<string, int>();
+                foreach (XElement xe in songXml.Element("info").Elements())
+                {
+                    data[xe.Name.LocalName] = xe.Value;
+                    if (xe.Attribute("__type") != null)
+                        typeAttr[xe.Name.LocalName] = xe.Attribute("__type").Value;
+                }
 
-				foreach (string dif in DIFS)
-					difficulty[dif]	= int.Parse(songXml.Element("difficulty").Element(dif)		.Element("difnum").Value);
+                
 
-				Song song = new Song(data, difficulty, kfcPath);
+                // Difficulties. 0 = dummy.
+                Dictionary<string, Dictionary<string, string>> chartData = new Dictionary<string, Dictionary<string, string>>();
+
+                foreach (string dif in DIFS)
+                {
+                    chartData[dif] = new Dictionary<string, string>();
+                    foreach (XElement xe in songXml.Element("difficulty").Element(dif).Elements())
+                    { 
+                        chartData[dif][xe.Name.LocalName] = xe.Value;
+                        if (xe.Attribute("__type") != null)
+                            typeAttr[xe.Name.LocalName] = xe.Attribute("__type").Value;
+                    }
+
+                    // Data Manipulation
+                    chartData[dif]["price"] = "-1";
+                    chartData[dif]["limited"] = "3";
+                }
+
+				Song song = new Song(data, chartData, kfcPath, false);
 				songs[id] = song;
 			}
 
@@ -67,14 +94,18 @@ namespace SongList
 			loaded = true;
 		}
 
-		public int AddKshSong(string path)
+        private void Clear()
+        {
+            for (int i = 0; i < listSize; ++i)
+                songs[i] = new Song();
+        }
+
+		public int AddKshSong(string path, int startId = 0)
 		{
 			int newId = 0;
-            int listId = 0; // For ListBox Display
-            foreach (int id in Enumerable.Range(256, 1024))
+            foreach (int id in Enumerable.Range(Math.Max(256, startId), 1024))
             {
-                if (songs.ContainsKey(id)) listId++;
-                else
+                if (songs[id].IsDummy())
                 {
                     newId = id;
                     break;
@@ -84,12 +115,17 @@ namespace SongList
 
 			songs[newId] = new Song(newId.ToString(), path);
 
-			return listId;
+			return newId;
 		}
 
-		public void DeleteId(int id)
+		public bool DeleteId(int id)
 		{
-			songs.Remove(id);
+            if (songs[id].IsDummy()) return false;
+            else
+            {
+                songs[id] = new Song();
+                return true;
+            }
 		}
 
 
@@ -99,72 +135,43 @@ namespace SongList
 			string dbPath = kfcPath + "\\data\\others\\music_db.xml";
 
 			XElement root = new XElement("mdb");
-			foreach (KeyValuePair<int, Song> songId in songs)
-			{
-				int id		= songId.Key;
-				Song song	= songId.Value;
+            XDocument xmlFile = new XDocument(
+                new XDeclaration("1.0", "shift-jis", "yes"),
+                root
+            );
 
-				string soundPath = kfcPath + "\\data\\sound\\" + song.BaseName() + ".2dx";
-				FileStream osstream = new FileStream(soundPath, FileMode.Create);
+            for (int id = 0; id < listSize; ++id)
+            {
+				Song song	= songs[id];
 
-				BinaryWriter bw = new BinaryWriter(osstream);
+                if (song.IsDummy()) continue;
 
-				bw.BaseStream.Position = 0x48;
-				bw.Write(0x0000004C);
-				bw.Write(0x39584432);
-				bw.Write(0x00000018);
-				bw.Write(0x00000000); // Will be replaced with sound length later
-				bw.Write(0xFFFF3231);
-				bw.Write(0x00010040);
-				bw.Write(0x00000000);
-
-                FileStream fs = song.GetWav();
-                fs.CopyTo(osstream);
-                fs.Close();
-
-				long endPos = osstream.Position;
-				bw.BaseStream.Position = 0x54;
-				bw.Write((int)(endPos - 0x64));
-
-				osstream.Close();
-
-                // Write .vox
-
+                // Write .vox and 2dx
                 song.Save(kfcPath);
 
+                // Write to db
                 XElement music = new XElement("music", new XAttribute("id", id));
 
 				XElement info = new XElement("info");
 
-				info.Add(new XElement("label",				song.Data("label")));
-				info.Add(new XElement("title_name",			song.Data("title")));
-				info.Add(new XElement("title_yomigana",		""));
-				info.Add(new XElement("artist_name",		song.Data("artist")));
-				info.Add(new XElement("artist_yomigana",	""));
-				info.Add(new XElement("ascii",				song.Data("ascii")));
-				info.Add(new XElement("bpm_max",			new XAttribute("__type", "u32"),	99999)); // BPM
-				info.Add(new XElement("bpm_min",			new XAttribute("__type", "u32"),	99999)); // BPM
-				info.Add(new XElement("distribution_date",	new XAttribute("__type", "u32"),	22222222));
-				info.Add(new XElement("volume",				new XAttribute("__type", "u16"),	100)); // Adjust by sox?
-				info.Add(new XElement("bg_no",				new XAttribute("__type", "u16"),	0)); // BG here
-				info.Add(new XElement("genre",				new XAttribute("__type", "u8"),		32));
-				info.Add(new XElement("is_fixed",			new XAttribute("__type", "u8"),		1));
-				info.Add(new XElement("version",			new XAttribute("__type", "u8"),		song.Data("version")));
-				info.Add(new XElement("demo_pri",			new XAttribute("__type", "s8"),		0));
-				info.Add(new XElement("inf_ver",			new XAttribute("__type", "u8"),		song.Data("inf_ver")));
+                foreach (KeyValuePair<string, string> d in song.Dict())
+                    if (typeAttr.ContainsKey(d.Key))
+                        info.Add(new XElement(d.Key, new XAttribute("__type", typeAttr[d.Key]), d.Value));
+                    else
+                        info.Add(new XElement(d.Key, d.Value));
 
-				XElement difficulty = new XElement("difficulty");
+                XElement difficulty = new XElement("difficulty");
 				
-				foreach (string dif in DIFS)
-				{
-					XElement difTag = new XElement(dif);
-					difTag.Add(new XElement("difnum", new XAttribute("__type", "u8"), song.Difficulty(dif)));
-					difTag.Add(new XElement("illustrator", ""));
-					difTag.Add(new XElement("effected_by", ""));
-					difTag.Add(new XElement("price", new XAttribute("__type", "s32"), 9999));
-					difTag.Add(new XElement("limited", new XAttribute("__type", "u8"), 3));
+				foreach(KeyValuePair<string, Dictionary<string, string>> chartInfo in song.ChartDict())
+                { 
+                    XElement difTag = new XElement(chartInfo.Key);
+                    foreach (KeyValuePair<string, string> d in chartInfo.Value)
+                        if (typeAttr.ContainsKey(d.Key))
+                            difTag.Add(new XElement(d.Key, new XAttribute("__type", typeAttr[d.Key]), d.Value));
+                        else
+                            difTag.Add(new XElement(d.Key, d.Value));
 
-					difficulty.Add(difTag);
+                    difficulty.Add(difTag);
 				}
 
 				music.Add(info);
@@ -173,28 +180,35 @@ namespace SongList
 				root.Add(music);
 			}
 
-			root.Save(dbPath);
+            xmlFile.Save(dbPath);
 		}
 
 		// Utils
 
-		public Song Song(int id) { return songs[id]; }
+		public Song Song(int id) {
+            if ((id < 1) || (id > listSize - 1)) return new Song();
+            return songs[id];
+        }
 
 		public List<KeyValuePair<int, Song>> List()
 		{
 			List<KeyValuePair<int, Song>> list = new List<KeyValuePair<int, Song>>();
-			foreach (int id in Enumerable.Range(1, 1024))
-				if (songs.ContainsKey(id))
-					list.Add(new KeyValuePair<int, Song>(id, songs[id]));
+			foreach (int id in Enumerable.Range(1, listSize - 1))
+				list.Add(new KeyValuePair<int, Song>(id, songs[id]));
 			return list;
 		}
 
+        public static string GetCachePath() { return cachePath; }
+
 		public bool Loaded() { return loaded; }
 
-		// Datas
+        // Datas
 
-		private Dictionary<int, Song> songs = new Dictionary<int, Song>();
+        //private List<Song> songs = new List<Song>(listSize);
+        private Song[] songs;
 		private string kfcPath;
 		private bool loaded = false;
+
+        private static Dictionary<string, string> typeAttr = new Dictionary<string, string>();
 	}
 }

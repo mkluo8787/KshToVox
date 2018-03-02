@@ -11,15 +11,23 @@ namespace SongList
 {
 	public class Song
 	{
-		// Methods
+        // Methods
 
-		// From K-Shoot
-		public Song(string label,
+        // dummy
+        public Song()
+        {
+            dummy = true;
+        }
+
+        public bool IsDummy() { return dummy; }
+
+        // From K-Shoot
+        public Song(string label,
 					string kshPath)
 		{
-			// ogg mp3 wav
+            // ogg mp3 wav
 
-			if (!Directory.Exists(kshPath)) throw new DirectoryNotFoundException();
+            if (!Directory.Exists(kshPath)) throw new DirectoryNotFoundException();
 
 			string[] kshFiles = Directory.GetFiles(kshPath, "*.ksh");
 
@@ -30,13 +38,26 @@ namespace SongList
 			(Dictionary<string, string> kshCheckParse, List<string> chartCheck) = ParseKshInfo(fs);
 			fs.Close();
 
-			data["label"] = label;
-			data["title"] = kshCheckParse["title"];
-			data["artist"] = kshCheckParse["artist"];
-			string[] asciiInfo = { data["title"], data["artist"] };
-			data["ascii"] = MakeAscii(asciiInfo);
-			data["version"] = "3";
-			data["inf_ver"] = "3";
+            data["label"] = label;
+            data["title_name"] = kshCheckParse["title"];
+            data["title_yomigana"] = "";
+            data["artist_name"] = kshCheckParse["artist"];
+            data["artist_yomigana"] = "";
+            string[] asciiInfo = { data["title_name"], data["artist_name"] };
+            data["ascii"] = MakeAscii(asciiInfo);
+            data["bpm_max"] = "99999";
+            data["bpm_min"] = "99999";
+            data["distribution_date"] = "22222222";
+            data["volume"] = "100";
+            data["bg_no"] = "0";
+            data["genre"] = "16";
+            data["is_fixed"] = "1";
+            data["version"] = "3";
+            data["demo_pri"] = "-2";
+            data["inf_ver"] = "3";
+
+            // Indicates that this is a custom simfile
+            data["custom"] = "1";
 
             // Detect if some object is in 1st Measure (Shift with +1 measure)
             Chart checkVoxChart = new Chart(chartCheck, kshCheckParse["t"], false);
@@ -56,31 +77,40 @@ namespace SongList
 				(Dictionary<string, string> kshParse, List<string> chart) = ParseKshInfo(fs2);
 				fs2.Close();
 
-				if		(kshParse["difficulty"] == "light")
-				{
-					charts		[SongList.DIFS[0]] = new Chart(chart, kshParse["t"], shift);
-					difficulty	[SongList.DIFS[0]] = int.Parse(kshParse["level"]);
-				}
-				else if	(kshParse["difficulty"] == "challenge")
-				{
-					charts		[SongList.DIFS[1]] = new Chart(chart, kshParse["t"], shift);
-					difficulty	[SongList.DIFS[1]] = int.Parse(kshParse["level"]);
-				}
-				else if (kshParse["difficulty"] == "extended")
-				{
-					charts		[SongList.DIFS[2]] = new Chart(chart, kshParse["t"], shift);
-                    difficulty	[SongList.DIFS[2]] = int.Parse(kshParse["level"]);
-				}
-				else if (kshParse["difficulty"] == "infinite")
-				{
-					charts		[SongList.DIFS[3]] = new Chart(chart, kshParse["t"], shift);
-                    difficulty	[SongList.DIFS[3]] = int.Parse(kshParse["level"]);
-				}
+                int id = 0;
+                if      (kshParse["difficulty"] == "light")     id = 0;
+                else if (kshParse["difficulty"] == "challenge") id = 1;
+                else if (kshParse["difficulty"] == "extended")  id = 2;
+                else if (kshParse["difficulty"] == "infinite")  id = 3;
+                else new Exception("Invalid dif num in .ksh!");
+
+                charts		[SongList.DIFS[id]] = new Chart(chart, kshParse["t"], shift);
+
+                chartData   [SongList.DIFS[id]] = new Dictionary<string, string>();
+                chartData   [SongList.DIFS[id]]["difnum"]       = kshParse["level"];
+                chartData   [SongList.DIFS[id]]["illustrator"]  = kshParse["illustrator"];
+                chartData   [SongList.DIFS[id]]["effected_by"]  = kshParse["effect"];
+                chartData   [SongList.DIFS[id]]["price"]        = "-1";
+                chartData   [SongList.DIFS[id]]["limited"]      = "3";
 			}
 
-			// Parsing for wav
+            // Fill in empty data for chartdata
+            foreach (string dif in SongList.DIFS)
+            {
+                if (!chartData.ContainsKey(dif))
+                {
+                    chartData[dif] = new Dictionary<string, string>();
+                    chartData[dif]["difnum"]        = "0";
+                    chartData[dif]["illustrator"]   = "";
+                    chartData[dif]["effected_by"]   = "";
+                    chartData[dif]["price"]         = "-1";
+                    chartData[dif]["limited"]       = "3";
+                }
+            }
 
-			string soundPath = kshPath + "\\" + kshCheckParse["m"].Split(';').ElementAt<string>(0);
+            // Parsing for wav
+
+            string soundPath = kshPath + "\\" + kshCheckParse["m"].Split(';').ElementAt<string>(0);
 
 			string ext = Path.GetExtension(soundPath);
 			if (!((ext == ".mp3") || (ext == ".ogg") || (ext == ".wav")))
@@ -92,28 +122,39 @@ namespace SongList
             else
                 ConvertAndTrimToWav(soundPath, outSoundPath, int.Parse(kshCheckParse["o"]));
 
-            songCachePath = outSoundPath + RandomString(10);
-            if (!File.Exists(outSoundPath)) throw new FileNotFoundException();
-            System.IO.File.Move(outSoundPath, songCachePath);
+            songCachePath = outSoundPath;
+            loaded = true;
         }
 
 		// From KFC
 		public Song(Dictionary<string, string>	data_,
-					Dictionary<string, int>		difficulty_,
-					string kfcPath)
+                    Dictionary<string, Dictionary<string, string>> chartData_,
+					string kfcPath,
+                    bool load)
 		{
-			data = data_;
-			difficulty = difficulty_;
+            data = data_;
+            chartData = chartData_;
+            
 
-			foreach (KeyValuePair<string, int> difInfo in difficulty)
+            if (!load) return; 
+            // load:    If false, skips the entire .vox & .2dx parsing procedure.
+
+            // Make Charts
+
+            foreach (KeyValuePair<string, Dictionary<string, string>> chartInfo in chartData)
 			{
-				if (difInfo.Value == 0) continue;
+				if (chartInfo.Value["difnum"] == "0") continue;
 
-				string chartPath = kfcPath + "\\data\\others\\vox\\" + BaseName() + Suffix(difInfo.Key) + ".vox";
-				if (!File.Exists(chartPath)) throw new FileNotFoundException();
+				string chartPath = kfcPath + "\\data\\others\\vox\\" + BaseName() + Suffix(chartInfo.Key) + ".vox";
+                if (!File.Exists(chartPath))
+                {
+                    chartPath = SongList.GetCachePath() + BaseName() + Suffix(chartInfo.Key) + ".vox";
+                    if (!File.Exists(chartPath))
+                        throw new FileNotFoundException();
+                }
 				FileStream cstream = new FileStream(chartPath, FileMode.Open);
 
-				charts[difInfo.Key] = new Chart(cstream);
+				charts[chartInfo.Key] = new Chart(cstream);
 
 				cstream.Close();
             }
@@ -121,7 +162,7 @@ namespace SongList
             // .2dx to wav
 
             string soundPath = kfcPath + "\\data\\sound\\" + BaseName() + ".2dx";
-            string outSoundPath = SongList.cachePath + BaseName() + ".wav" + RandomString(10);
+            string outSoundPath = SongList.cachePath + BaseName() + ".wav";
             if (!File.Exists(soundPath)) throw new FileNotFoundException();
             FileStream sstream = new FileStream(soundPath, FileMode.Open);
             FileStream osstream = new FileStream(outSoundPath, FileMode.Create);
@@ -133,29 +174,56 @@ namespace SongList
             osstream.Close();
 
             songCachePath = outSoundPath;
+            loaded = true;
         }
 
-        // Write to Vox
+        // Write to Vox and 2dx
         public void Save(string kfcPath)
         {
-            foreach (KeyValuePair<string, int> difInfo in difficulty)
-            {
-                if (difInfo.Value == 0) continue;
+            if (!loaded) return;
 
-                string chartPath = kfcPath + "\\data\\others\\vox\\" + BaseName() + Suffix(difInfo.Key) + ".vox";
+            foreach (KeyValuePair<string, Dictionary<string, string>> chartInfo in chartData)
+            {
+                if (chartInfo.Value["difnum"] == "0") continue;
+
+                string chartPath = kfcPath + "\\data\\others\\vox\\" + BaseName() + Suffix(chartInfo.Key) + ".vox";
                 FileStream cstream = new FileStream(chartPath, FileMode.Create);
 
-                MemoryStream mstream = charts[difInfo.Key].ToVox();
+                MemoryStream mstream = charts[chartInfo.Key].ToVox();
                 mstream.Position = 0;
                 mstream.CopyTo(cstream);
 
                 mstream.Close();
                 cstream.Close();
             }
+
+            string soundPath = kfcPath + "\\data\\sound\\" + BaseName() + ".2dx";
+            FileStream osstream = new FileStream(soundPath, FileMode.Create);
+
+            BinaryWriter bw = new BinaryWriter(osstream);
+
+            bw.BaseStream.Position = 0x48;
+            bw.Write(0x0000004C);
+            bw.Write(0x39584432);
+            bw.Write(0x00000018);
+            bw.Write(0x00000000); // Will be replaced with sound length later
+            bw.Write(0xFFFF3231);
+            bw.Write(0x00010040);
+            bw.Write(0x00000000);
+
+            FileStream fs = GetWav();
+            fs.CopyTo(osstream);
+            fs.Close();
+
+            long endPos = osstream.Position;
+            bw.BaseStream.Position = 0x54;
+            bw.Write((int)(endPos - 0x64));
+
+            osstream.Close();
         }
 
 		// Music (wav ms-adpcm)
-		public FileStream GetWav()
+		private FileStream GetWav()
 		{
 			if (!File.Exists(songCachePath)) throw new FileNotFoundException();
 			return new FileStream(songCachePath, FileMode.Open);
@@ -182,14 +250,23 @@ namespace SongList
         }
 
 		// Utils
-		public string Data(string tag) { return data[tag]; }
+		public string Data(string tag)
+        {
+            if (data.ContainsKey(tag))
+                return data[tag];
+            else
+                return "";
+        }
 
-		public int Difficulty(string tag)
+        public Dictionary<string, string> Dict() { return data; }
+
+        public Dictionary<string, Dictionary<string, string>> ChartDict() { return chartData; }
+
+        public Dictionary<string, string> ChartInfo(string tag)
 		{
-			if (!difficulty.ContainsKey(tag))
-				return 0;
-			else
-				return difficulty[tag];
+			if (!chartData.ContainsKey(tag))
+				throw new Exception("Unknown Difficulty!");
+			return chartData[tag];
 		}
 
 		public string BaseName()
@@ -268,17 +345,19 @@ namespace SongList
         // Override
         public override string ToString()
 		{
-			return data["ascii"];
+            return Data("ascii");
 		}
 
 		// Song Attributes
 
 		Dictionary<string, string> data = new Dictionary<string, string>();
-		Dictionary<string, int> difficulty = new Dictionary<string, int>();
+        Dictionary<string, Dictionary<string, string>> chartData = new Dictionary<string, Dictionary<string, string>>();
 
         string songCachePath;
+        bool loaded = false;
+        bool dummy = false;
 
-		// Charts
-		private Dictionary<string, Chart> charts = new Dictionary<string, Chart>();
+        // Charts
+        private Dictionary<string, Chart> charts = new Dictionary<string, Chart>();
 	}
 }

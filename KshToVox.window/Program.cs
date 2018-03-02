@@ -24,15 +24,14 @@ namespace KshToVox.window
 			Application.Run(new Form());	
 		}
 
-		static SongList.SongList	songList = new SongList.SongList();
+		static SongList.SongList songList = new SongList.SongList();
 		static string statusText = "";
         static string statusRText = "";
         static bool changes = false;
         static bool loading = false;
-        static int selectedSongId = -1;
-        static int newSongIndex = -1;
+        static int selectedSongId = 0;
 
-        public static void LoadSongList()
+        public static void LoadSongList(Action callbackUpdate)
         {
             if (loading) return;
 
@@ -43,22 +42,38 @@ namespace KshToVox.window
 
 			if (folderBrowserDialog1.ShowDialog() == DialogResult.OK)
 			{
-				LoadSongList(folderBrowserDialog1.SelectedPath);
+				LoadSongList(folderBrowserDialog1.SelectedPath, callbackUpdate);
 			}		
 		}
 
-		public static void LoadSongList(string path)
+		public static void LoadSongList(string path, Action callbackUpdate)
 		{
             if (loading) return;
             if (changes)
                 if (!Ask("Discard unsaved changes?")) return;
-			
-            changes = false;
-            songList.Load(path);
-            SetStatus("KFC song list loaded.");
+
+            SetStatusR("Loading...");
+
+            Thread thread = new Thread(() => LoadSongList_Thread(path, callbackUpdate));
+            thread.Start();
         }
 
-		public static void SaveSongList()
+        private static void LoadSongList_Thread(string path, Action callbackUpdate)
+        {
+            loading = true;
+            
+            songList.Load(path);
+
+            SetStatusR("");
+            SetStatus("KFC song list loaded.");
+
+            changes = false;
+            loading = false;
+
+            callbackUpdate();
+        }
+
+        public static void SaveSongList()
 		{
             if (loading) return;
             changes = false;
@@ -91,6 +106,8 @@ namespace KshToVox.window
 				return;
 			}
 
+            SetStatusR("Loading...");
+
             Thread thread = new Thread(() => ImportSong_Thread(path, callbackUpdate));
             thread.Start();
         }
@@ -98,9 +115,9 @@ namespace KshToVox.window
         private static void ImportSong_Thread(string path, Action callbackUpdate)
         {
             loading = true;
-            SetStatusR("Loading...");
 
-            newSongIndex = songList.AddKshSong(path);
+            int newSelectedSongId = songList.AddKshSong(path, selectedSongId);
+            selectedSongId = newSelectedSongId;            
 
             SetStatusR("");
             SetStatus("New K-Shoot song loaded.");
@@ -120,13 +137,19 @@ namespace KshToVox.window
 				SetStatus("No song selected!");
 				return;
 			}
-            changes = true;
-            songList.DeleteId(id);
+            changes = songList.DeleteId(id);
 		}
 
-		public static List<KeyValuePair<int, Song>> GetSongList() {	return songList.List();	}
+        public static bool CheckUnsavedB4Closing()
+        {
+            if (changes) return !Ask("Discard unsaved changes?");
+            else return false;
+        }
 
-		public static int GetSelectedIndex() { return selectedSongId; }
+        public static List<KeyValuePair<int, Song>> GetSongList() {	return songList.List();	}
+        public static KeyValuePair<int, Song> GetSongListId(int id) { return new KeyValuePair<int, Song>(id, songList.Song(id)); }
+
+        public static int GetSelectedIndex() { return selectedSongId; }
 
 		public static Dictionary<string, string> GetLabels()
 		{
@@ -134,7 +157,7 @@ namespace KshToVox.window
 
 			Dictionary<string, string> labels = new Dictionary<string, string>();
 
-			string[] tags = {"title", "artist"};
+			string[] tags = {"title_name", "artist_name"};
 			foreach (string tag in tags)
 				if (id == -1) labels[tag] = "";
 				else labels[tag] = songList.Song(id).Data(tag);
@@ -149,8 +172,6 @@ namespace KshToVox.window
         }
 
         public static void UpdateSeletedSongId(int id) { selectedSongId = id; }
-
-        public static int NewSongIndex() { return newSongIndex; }
 
         public static string GetStatus() { return statusText; }
         public static string GetStatusR() { return statusRText; }

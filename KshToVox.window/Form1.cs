@@ -19,16 +19,20 @@ namespace KshToVox.window
 		public Form()
 		{
 			InitializeComponent();
-		}
+            foreach (var item in Program.GetSongList())
+                SongListTextBox.Items.Add(item);
+        }
 
 		private void UpdateView()
 		{
             this.Invoke((MethodInvoker)delegate
             {
-                SongListTextBox.DataSource = null;
-                SongListTextBox.DataSource = Program.GetSongList();
-
-                SongListTextBox.SelectedIndex = Program.NewSongIndex();
+                for (int i = 0; i < SongListTextBox.Items.Count; ++i)
+                {
+                    SongListTextBox.Items[i] = Program.GetSongListId(i + 1);
+                }
+                
+                SongListTextBox.SelectedIndex = Program.GetSelectedIndex() - 1;
 
                 UpdateViewStatic();
             });
@@ -39,8 +43,8 @@ namespace KshToVox.window
             Text = Program.GetTitle();
 
 			Dictionary<string, string> labels = Program.GetLabels();
-			label_title.Text = labels["title"];
-			label_artist.Text = labels["artist"];
+			label_title.Text = labels["title_name"];
+			label_artist.Text = labels["artist_name"];
 
 			toolStripStatusLabel1.Text = Program.GetStatus();
             toolStripStatusLabel3.Text = Program.GetStatusR();
@@ -53,7 +57,7 @@ namespace KshToVox.window
 
 		private void loadToolStripMenuItem_Click(object sender, EventArgs e)
 		{
-			Program.LoadSongList();
+			Program.LoadSongList(UpdateView);
 			UpdateView();
 		}
 
@@ -73,7 +77,7 @@ namespace KshToVox.window
 			string[] folders = (string[])e.Data.GetData(DataFormats.FileDrop);
 			if (!((folders.Length == 1) && (Directory.Exists(folders[0])))) return;
 
-			Program.LoadSongList(folders[0]);
+			Program.LoadSongList(folders[0], UpdateView);
 			UpdateView();
 		}
 
@@ -99,17 +103,46 @@ namespace KshToVox.window
 
 		private void SongListTextBox_SelectedValueChanged(object sender, EventArgs e)
 		{
-			
-			if (SongListTextBox.SelectedItem == null)
-				Program.UpdateSeletedSongId(-1);
-			else
-			{
-				KeyValuePair<int, Song> songId = (KeyValuePair<int, Song>)SongListTextBox.SelectedItem;
-				Program.UpdateSeletedSongId(songId.Key);
-				
-			}
+            /*	
+            if (SongListTextBox.SelectedItem == null)
+                Program.UpdateSeletedSongId(-1);
+            else
+            {
+                KeyValuePair<int, Song> songId = (KeyValuePair<int, Song>)SongListTextBox.SelectedItem;
+                Program.UpdateSeletedSongId(songId.Key);
 
-			UpdateViewStatic();
-		}
+            }
+
+            UpdateViewStatic();
+            */
+        }
+
+        private void SongListTextBox_MouseClick(object sender, MouseEventArgs e)
+        {	
+            if (SongListTextBox.SelectedItem != null)
+            { 
+                KeyValuePair<int, Song> songId = (KeyValuePair<int, Song>)SongListTextBox.SelectedItem;
+                Program.UpdateSeletedSongId(songId.Key);
+
+            }
+            UpdateViewStatic();
+        }
+
+        private void SongListTextBox_MouseLeave(object sender, EventArgs e)
+        {
+            if (SongListTextBox.SelectedItem != null)
+            {
+                KeyValuePair<int, Song> songId = (KeyValuePair<int, Song>)SongListTextBox.SelectedItem;
+                Program.UpdateSeletedSongId(songId.Key);
+
+            }
+            UpdateViewStatic();
+        }
+
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            e.Cancel = Program.CheckUnsavedB4Closing();
+        }
+
     }
 }
