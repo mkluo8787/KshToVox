@@ -23,30 +23,43 @@ namespace SongList
 
         // From K-Shoot
         public Song(string label,
-					string kshPath)
-		{
+                    string kshPath)
+        {
             // ogg mp3 wav
 
             if (!Directory.Exists(kshPath)) throw new DirectoryNotFoundException();
 
-			string[] kshFiles = Directory.GetFiles(kshPath, "*.ksh");
+            string[] kshFiles = Directory.GetFiles(kshPath, "*.ksh");
 
-			if (kshFiles.Length == 0) throw new Exception("No .ksh found in this folder!");
+            if (kshFiles.Length == 0) throw new Exception("No .ksh found in this folder!");
 
-			// Parsing the first file for song infos.
-			FileStream fs = new FileStream(kshFiles[0], FileMode.Open);
-			(Dictionary<string, string> kshCheckParse, List<string> chartCheck) = ParseKshInfo(fs);
-			fs.Close();
+            // Parsing the first file for song infos.
+            FileStream fs = new FileStream(kshFiles[0], FileMode.Open);
+            (Dictionary<string, string> kshInfoParse, List<string> _) = ParseKshInfo(fs);
+            fs.Close();
 
             data["label"] = label;
-            data["title_name"] = kshCheckParse["title"];
+            data["title_name"] = kshInfoParse["title"];
             data["title_yomigana"] = "";
-            data["artist_name"] = kshCheckParse["artist"];
+            data["artist_name"] = kshInfoParse["artist"];
             data["artist_yomigana"] = "";
             string[] asciiInfo = { data["title_name"], data["artist_name"] };
             data["ascii"] = MakeAscii(asciiInfo);
-            data["bpm_max"] = "99999";
-            data["bpm_min"] = "99999";
+
+            string[] bpms = kshInfoParse["t"].Split('-');
+            if (bpms.Length == 1)
+            {
+                data["bpm_max"] = string.Format("{0:0}", (Convert.ToDouble(bpms[0]) * 100.0));
+                data["bpm_min"] = string.Format("{0:0}", (Convert.ToDouble(bpms[0]) * 100.0));
+            }
+            else if (bpms.Length == 2)
+            {
+                data["bpm_max"] = string.Format("{0:0}", (Convert.ToDouble(bpms[1]) * 100.0));
+                data["bpm_min"] = string.Format("{0:0}", (Convert.ToDouble(bpms[0]) * 100.0));
+            }
+            else
+                throw new Exception("Ksh bpm format error!");
+
             data["distribution_date"] = "22222222";
             data["volume"] = "100";
             data["bg_no"] = "0";
@@ -59,21 +72,21 @@ namespace SongList
             // Indicates that this is a custom simfile
             data["custom"] = "1";
 
-            // Detect if some object is in 1st Measure (Shift with +1 measure)
-            Chart checkVoxChart = new Chart(chartCheck, kshCheckParse["t"], false);
-            bool shift;
-            if (checkVoxChart.SomethingIsInFirstMeasure())
-                shift = true;
-            else
-                shift = false;
-
-            double offset = checkVoxChart.FirstMesureLength();
-
-
             // Parsing for Charts
             foreach (string kshFile in kshFiles)
 			{
-				FileStream fs2 = new FileStream(kshFile, FileMode.Open);
+                // Detect if some object is in 1st Measure (Shift with +1 measure)
+                FileStream fs1 = new FileStream(kshFile, FileMode.Open);
+                (Dictionary<string, string> kshCheckParse, List<string> chartCheck) = ParseKshInfo(fs1);
+                fs1.Close();
+
+                Chart checkVoxChart = new Chart(chartCheck, kshCheckParse["t"], false);
+
+                bool shift = checkVoxChart.SomethingIsInFirstMeasure();
+
+                double offset = checkVoxChart.FirstMesureLength();
+
+                FileStream fs2 = new FileStream(kshFile, FileMode.Open);
 				(Dictionary<string, string> kshParse, List<string> chart) = ParseKshInfo(fs2);
 				fs2.Close();
 
@@ -92,7 +105,46 @@ namespace SongList
                 chartData   [SongList.DIFS[id]]["effected_by"]  = kshParse["effect"];
                 chartData   [SongList.DIFS[id]]["price"]        = "-1";
                 chartData   [SongList.DIFS[id]]["limited"]      = "3";
-			}
+
+                // Parsing for wav
+
+                string soundPath = kshPath + "\\" + kshParse["m"].Split(';').ElementAt<string>(0);
+
+                if (!soundCaches.ContainsKey(soundPath))
+                {
+                    string ext = Path.GetExtension(soundPath);
+                    if (!((ext == ".mp3") || (ext == ".ogg") || (ext == ".wav")))
+                        throw new Exception("Music file format " + ext + " invalid!");
+
+                    string outSoundPath = SongList.cachePath + BaseName() + Suffix(SongList.DIFS[id]) + ".wav";
+                    string preSoundPath = SongList.cachePath + BaseName() + Suffix(SongList.DIFS[id]) + "_p.wav";
+
+                    if (shift)
+                        ConvertAndTrimToWav(soundPath, outSoundPath, int.Parse(kshParse["o"]) - Convert.ToInt32(offset * 1000), -1);
+                    else
+                        ConvertAndTrimToWav(soundPath, outSoundPath, int.Parse(kshParse["o"]), -1);
+
+                    if (soundCaches.Count == 0)
+                        soundCaches.Add(soundPath, new Tuple<string, string>(outSoundPath, ""));
+                    else
+                        soundCaches.Add(soundPath, new Tuple<string, string>(outSoundPath, Suffix(SongList.DIFS[id])));
+
+                    // Preview sound
+
+                    ConvertAndTrimToWav(soundPath, preSoundPath, int.Parse(kshParse["po"]), int.Parse(kshParse["plength"]));
+
+                    // Fix ms-adpcm BlockSize mismatch, and fade in/out effect for the sample music
+
+                    Fade(preSoundPath);
+                    WavBlockSizeFix(preSoundPath);                    
+
+                    if (preSoundCaches.Count == 0)
+                        preSoundCaches.Add(soundPath, new Tuple<string, string>(preSoundPath, ""));
+                    else
+                        preSoundCaches.Add(soundPath, new Tuple<string, string>(preSoundPath, Suffix(SongList.DIFS[id])));
+                }
+                
+            }
 
             // Fill in empty data for chartdata
             foreach (string dif in SongList.DIFS)
@@ -108,21 +160,6 @@ namespace SongList
                 }
             }
 
-            // Parsing for wav
-
-            string soundPath = kshPath + "\\" + kshCheckParse["m"].Split(';').ElementAt<string>(0);
-
-			string ext = Path.GetExtension(soundPath);
-			if (!((ext == ".mp3") || (ext == ".ogg") || (ext == ".wav")))
-				throw new Exception("Music file format " + ext + " invalid!");
-
-			string outSoundPath = SongList.cachePath + BaseName() + ".wav";
-            if (shift)
-			    ConvertAndTrimToWav(soundPath, outSoundPath, int.Parse(kshCheckParse["o"]) - Convert.ToInt32(offset * 1000));
-            else
-                ConvertAndTrimToWav(soundPath, outSoundPath, int.Parse(kshCheckParse["o"]));
-
-            songCachePath = outSoundPath;
             loaded = true;
         }
 
@@ -157,23 +194,42 @@ namespace SongList
 				charts[chartInfo.Key] = new Chart(cstream);
 
 				cstream.Close();
+
+                // .2dx to wav (looking for difficulty-specific sound file)
+
+                string soundPath = kfcPath + "\\data\\sound\\" + BaseName() + Suffix(chartInfo.Key) + ".2dx";
+                string outSoundPath = SongList.cachePath + BaseName() + Suffix(chartInfo.Key) + ".wav";
+                if (File.Exists(soundPath))
+                {
+                    FileStream sstream = new FileStream(soundPath, FileMode.Open);
+                    FileStream osstream = new FileStream(outSoundPath, FileMode.Create);
+
+                    sstream.Position = 0x64;
+                    sstream.CopyTo(osstream);
+
+                    sstream.Close();
+                    osstream.Close();
+
+                    soundCaches.Add(soundPath, new Tuple<string, string>(outSoundPath, ""));
+                }
             }
 
-            // .2dx to wav
+            // .2dx to wav (looking for common sound file)
 
-            string soundPath = kfcPath + "\\data\\sound\\" + BaseName() + ".2dx";
-            string outSoundPath = SongList.cachePath + BaseName() + ".wav";
-            if (!File.Exists(soundPath)) throw new FileNotFoundException();
-            FileStream sstream = new FileStream(soundPath, FileMode.Open);
-            FileStream osstream = new FileStream(outSoundPath, FileMode.Create);
+            string soundPath2 = kfcPath + "\\data\\sound\\" + BaseName() + ".2dx";
+            string outSoundPath2 = SongList.cachePath + BaseName() + ".wav";
+            if (!File.Exists(soundPath2)) throw new Exception("");
+            FileStream sstream2 = new FileStream(soundPath2, FileMode.Open);
+            FileStream osstream2 = new FileStream(outSoundPath2, FileMode.Create);
 
-            sstream.Position = 0x64;
-            sstream.CopyTo(osstream);
+            sstream2.Position = 0x64;
+            sstream2.CopyTo(osstream2);
 
-            sstream.Close();
-            osstream.Close();
+            sstream2.Close();
+            osstream2.Close();
 
-            songCachePath = outSoundPath;
+            soundCaches.Add(soundPath2, new Tuple<string, string>(outSoundPath2, ""));
+
             loaded = true;
         }
 
@@ -197,60 +253,142 @@ namespace SongList
                 cstream.Close();
             }
 
-            string soundPath = kfcPath + "\\data\\sound\\" + BaseName() + ".2dx";
-            FileStream osstream = new FileStream(soundPath, FileMode.Create);
+            foreach (KeyValuePair<string, Tuple<string, string>> sc in soundCaches)
+            {
+                string soundPath = kfcPath + "\\data\\sound\\" + BaseName() + sc.Value.Item2 + ".2dx";
+                FileStream osstream = new FileStream(soundPath, FileMode.Create);
 
-            BinaryWriter bw = new BinaryWriter(osstream);
+                BinaryWriter bw = new BinaryWriter(osstream);
 
-            bw.BaseStream.Position = 0x48;
-            bw.Write(0x0000004C);
-            bw.Write(0x39584432);
-            bw.Write(0x00000018);
-            bw.Write(0x00000000); // Will be replaced with sound length later
-            bw.Write(0xFFFF3231);
-            bw.Write(0x00010040);
-            bw.Write(0x00000000);
+                bw.BaseStream.Position = 0x48;
+                bw.Write(0x0000004C);
+                bw.Write(0x39584432);
+                bw.Write(0x00000018);
+                bw.Write(0x00000000); // Will be replaced with sound length later
+                bw.Write(0xFFFF3231);
+                bw.Write(0x00010040);
+                bw.Write(0x00000000);
 
-            FileStream fs = GetWav();
-            fs.CopyTo(osstream);
-            fs.Close();
+                FileStream fs = new FileStream(sc.Value.Item1, FileMode.Open);
+                fs.CopyTo(osstream);
+                fs.Close();
 
-            long endPos = osstream.Position;
-            bw.BaseStream.Position = 0x54;
-            bw.Write((int)(endPos - 0x64));
+                long endPos = osstream.Position;
+                bw.BaseStream.Position = 0x54;
+                bw.Write((int)(endPos - 0x64));
 
-            osstream.Close();
+                osstream.Close();
+            }
+
+            foreach (KeyValuePair<string, Tuple<string, string>> sc in preSoundCaches)
+            {
+                string soundPath = kfcPath + "\\data\\sound\\preview\\" + BaseNamePre() + sc.Value.Item2 + ".2dx";
+                FileStream osstream = new FileStream(soundPath, FileMode.Create);
+
+                BinaryWriter bw = new BinaryWriter(osstream);
+
+                bw.BaseStream.Position = 0x10;
+                bw.Write(0x0000004C);
+                bw.Write(0x00000001);
+
+                bw.BaseStream.Position = 0x48;
+                bw.Write(0x0000004C);
+                bw.Write(0x39584432);
+                bw.Write(0x00000018);
+                bw.Write(0x00000000); // Will be replaced with sound length later
+                bw.Write(0xFFFF3231);
+                bw.Write(0x00010040);
+                bw.Write(0x00000000);
+
+                FileStream fs = new FileStream(sc.Value.Item1, FileMode.Open);
+                fs.CopyTo(osstream);
+                fs.Close();
+
+                long endPos = osstream.Position;
+                bw.BaseStream.Position = 0x54;
+                bw.Write((int)(endPos - 0x64));
+
+                osstream.Close();
+            }
         }
 
-		// Music (wav ms-adpcm)
-		private FileStream GetWav()
-		{
-			if (!File.Exists(songCachePath)) throw new FileNotFoundException();
-			return new FileStream(songCachePath, FileMode.Open);
-		}
-
-		private static void ConvertAndTrimToWav(string src, string dest, int trimMs)
+		private static void ConvertAndTrimToWav(string src, string dest, int trimMs, int duraMs)
 		{
             double trimSec = System.Convert.ToDouble(trimMs) * 0.001;
+            //double duraSec = System.Convert.ToDouble(duraMs) * 0.001;
+
+            double duraSec = 10.30;
 
             System.Diagnostics.Process process = new System.Diagnostics.Process();
 			System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
 			startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
-			startInfo.FileName = "sox.exe";
-            if (trimMs > 0)
-			    startInfo.Arguments = "-G -q \"" + src + "\" -e ms-adpcm \"" + dest + "\" trim " + trimSec.ToString() + " -0.0";
-            else if (trimMs < 0)
-                startInfo.Arguments = "-G -q \"" + src + "\" -e ms-adpcm \"" + dest + "\" pad " + (-trimSec).ToString() + " 0.0";
+			startInfo.FileName = "sox\\sox.exe";
+            if (duraMs < 0)
+            {
+                if (trimMs > 0)
+                    startInfo.Arguments = "-G -q \"" + src + "\" -e ms-adpcm \"" + dest + "\" trim " + trimSec.ToString() + " -0.0";
+                else if (trimMs < 0)
+                    startInfo.Arguments = "-G -q \"" + src + "\" -e ms-adpcm \"" + dest + "\" pad " + (-trimSec).ToString() + " 0.0";
+                else
+                    startInfo.Arguments = "-G -q \"" + src + "\" -e ms-adpcm \"" + dest + "\"";
+            }
             else
-                startInfo.Arguments = "-G -q \"" + src + "\" -e ms-adpcm \"" + dest + "\"";
+            {
+                if (trimMs > 0)
+                    startInfo.Arguments = "-G -q \"" + src + "\" -e ms-adpcm \"" + dest + "\" trim " + trimSec.ToString() + " " + duraSec.ToString();
+                else if (trimMs < 0)
+                    startInfo.Arguments = "-G -q \"" + src + "\" -e ms-adpcm \"" + dest + "\" pad " + (-trimSec).ToString() + " 0.0 trim 0 " + duraSec.ToString();
+                else
+                    startInfo.Arguments = "-G -q \"" + src + "\" -e ms-adpcm \"" + dest + "\" trim 0 " + duraSec.ToString();
+            }
             process.StartInfo = startInfo;
             Console.WriteLine(startInfo.Arguments);
 			process.Start();
             process.WaitForExit();
         }
 
-		// Utils
-		public string Data(string tag)
+        private static void Fade(string src)
+        {
+            System.Diagnostics.Process process = new System.Diagnostics.Process();
+            System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
+            startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
+            startInfo.FileName = "sox\\sox.exe";
+
+            string dest = src;
+            FileInfo currentFile = new FileInfo(src);
+            string source = currentFile.Directory.FullName + "\\" + RandomString(20) + currentFile.Extension;
+            currentFile.MoveTo(source);
+
+            startInfo.Arguments = "-G -q \"" + source + "\" \"" + dest + "\" fade q 2 0 2";
+            
+            process.StartInfo = startInfo;
+            Console.WriteLine(startInfo.Arguments);
+            process.Start();
+            process.WaitForExit();
+        }
+
+        private static void WavBlockSizeFix(string src)
+        {
+            System.Diagnostics.Process process = new System.Diagnostics.Process();
+            System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
+            startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
+            startInfo.FileName = "2dxConvert\\2dxWavConvert.exe";
+
+            string dest = src;
+            FileInfo currentFile = new FileInfo(src);
+            string source = currentFile.Directory.FullName + "\\" + RandomString(20) + currentFile.Extension;
+            currentFile.MoveTo(source);
+
+            startInfo.Arguments = "\"" + source + "\" \"" + dest + "\" preview";
+
+            process.StartInfo = startInfo;
+            Console.WriteLine(startInfo.Arguments);
+            process.Start();
+            process.WaitForExit();
+        }
+
+        // Utils
+        public string Data(string tag)
         {
             if (data.ContainsKey(tag))
                 return data[tag];
@@ -276,7 +414,14 @@ namespace SongList
 					data["ascii"];
 		}
 
-		private static string MakeAscii(string[] tokens)
+        public string BaseNamePre()
+        {
+            return data["version"].PadLeft(3, '0') + "_" +
+                    data["label"].PadLeft(4, '0') + "_" +
+                    "pre";
+        }
+
+        private static string MakeAscii(string[] tokens)
 		{
 			string ascii = "";
 			char[] headTailTrim = { '_', ' ' };
@@ -353,7 +498,10 @@ namespace SongList
 		Dictionary<string, string> data = new Dictionary<string, string>();
         Dictionary<string, Dictionary<string, string>> chartData = new Dictionary<string, Dictionary<string, string>>();
 
-        string songCachePath;
+        //string songCachePath;
+
+        Dictionary<string, Tuple<string, string>> soundCaches = new Dictionary<string, Tuple<string, string>>();
+        Dictionary<string, Tuple<string, string>> preSoundCaches = new Dictionary<string, Tuple<string, string>>();
         bool loaded = false;
         bool dummy = false;
 
