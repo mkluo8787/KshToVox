@@ -122,7 +122,9 @@
             this.SongListTextBox.Name = "SongListTextBox";
             this.SongListTextBox.Size = new System.Drawing.Size(224, 292);
             this.SongListTextBox.TabIndex = 1;
+            this.SongListTextBox.MouseClick += new System.Windows.Forms.MouseEventHandler(this.SongListTextBox_MouseClick);
             this.SongListTextBox.SelectedValueChanged += new System.EventHandler(this.SongListTextBox_SelectedValueChanged);
+            this.SongListTextBox.MouseLeave += new System.EventHandler(this.SongListTextBox_MouseLeave);
             // 
             // splitContainer1
             // 

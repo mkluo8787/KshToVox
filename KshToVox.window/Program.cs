@@ -31,7 +31,7 @@ namespace KshToVox.window
         static bool loading = false;
         static int selectedSongId = 0;
 
-        public static void LoadSongList()
+        public static void LoadSongList(Action callbackUpdate)
         {
             if (loading) return;
 
@@ -42,22 +42,38 @@ namespace KshToVox.window
 
 			if (folderBrowserDialog1.ShowDialog() == DialogResult.OK)
 			{
-				LoadSongList(folderBrowserDialog1.SelectedPath);
+				LoadSongList(folderBrowserDialog1.SelectedPath, callbackUpdate);
 			}		
 		}
 
-		public static void LoadSongList(string path)
+		public static void LoadSongList(string path, Action callbackUpdate)
 		{
             if (loading) return;
             if (changes)
                 if (!Ask("Discard unsaved changes?")) return;
-			
-            changes = false;
-            songList.Load(path);
-            SetStatus("KFC song list loaded.");
+
+            SetStatusR("Loading...");
+
+            Thread thread = new Thread(() => LoadSongList_Thread(path, callbackUpdate));
+            thread.Start();
         }
 
-		public static void SaveSongList()
+        private static void LoadSongList_Thread(string path, Action callbackUpdate)
+        {
+            loading = true;
+            
+            songList.Load(path);
+
+            SetStatusR("");
+            SetStatus("KFC song list loaded.");
+
+            changes = false;
+            loading = false;
+
+            callbackUpdate();
+        }
+
+        public static void SaveSongList()
 		{
             if (loading) return;
             changes = false;
@@ -90,6 +106,8 @@ namespace KshToVox.window
 				return;
 			}
 
+            SetStatusR("Loading...");
+
             Thread thread = new Thread(() => ImportSong_Thread(path, callbackUpdate));
             thread.Start();
         }
@@ -97,9 +115,9 @@ namespace KshToVox.window
         private static void ImportSong_Thread(string path, Action callbackUpdate)
         {
             loading = true;
-            SetStatusR("Loading...");
 
-            selectedSongId = songList.AddKshSong(path, selectedSongId);
+            int newSelectedSongId = songList.AddKshSong(path, selectedSongId);
+            selectedSongId = newSelectedSongId;            
 
             SetStatusR("");
             SetStatus("New K-Shoot song loaded.");
@@ -122,7 +140,13 @@ namespace KshToVox.window
             changes = songList.DeleteId(id);
 		}
 
-		public static List<KeyValuePair<int, Song>> GetSongList() {	return songList.List();	}
+        public static bool CheckUnsavedB4Closing()
+        {
+            if (changes) return !Ask("Discard unsaved changes?");
+            else return false;
+        }
+
+        public static List<KeyValuePair<int, Song>> GetSongList() {	return songList.List();	}
         public static KeyValuePair<int, Song> GetSongListId(int id) { return new KeyValuePair<int, Song>(id, songList.Song(id)); }
 
         public static int GetSelectedIndex() { return selectedSongId; }

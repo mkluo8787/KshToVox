@@ -13,7 +13,7 @@ namespace SongList
 {
 	public class SongList
 	{
-        private readonly static int listSize = 2048;
+        private readonly static int listSize = 1200;
 		public readonly static string[] DIFS = { "novice", "advanced", "exhaust", "infinite" };
 		public readonly static string cachePath = System.IO.Path.GetDirectoryName(
 			System.Reflection.Assembly.GetExecutingAssembly().Location

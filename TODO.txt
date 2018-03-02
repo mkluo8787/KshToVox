@@ -32,3 +32,7 @@ sox exe/dll pack
 selfmade & original chart grouping
 
 preview music
+
+min max bpm
+
+find list size

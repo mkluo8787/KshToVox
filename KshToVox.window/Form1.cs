@@ -19,7 +19,6 @@ namespace KshToVox.window
 		public Form()
 		{
 			InitializeComponent();
-            //SongListTextBox.DataSource = Program.GetSongList();
             foreach (var item in Program.GetSongList())
                 SongListTextBox.Items.Add(item);
         }
@@ -28,9 +27,6 @@ namespace KshToVox.window
 		{
             this.Invoke((MethodInvoker)delegate
             {
-            //SongListTextBox.DataSource = null;
-            //SongListTextBox.DataSource = Program.GetSongList();
-
                 for (int i = 0; i < SongListTextBox.Items.Count; ++i)
                 {
                     SongListTextBox.Items[i] = Program.GetSongListId(i + 1);
@@ -61,7 +57,7 @@ namespace KshToVox.window
 
 		private void loadToolStripMenuItem_Click(object sender, EventArgs e)
 		{
-			Program.LoadSongList();
+			Program.LoadSongList(UpdateView);
 			UpdateView();
 		}
 
@@ -81,7 +77,7 @@ namespace KshToVox.window
 			string[] folders = (string[])e.Data.GetData(DataFormats.FileDrop);
 			if (!((folders.Length == 1) && (Directory.Exists(folders[0])))) return;
 
-			Program.LoadSongList(folders[0]);
+			Program.LoadSongList(folders[0], UpdateView);
 			UpdateView();
 		}
 
@@ -107,17 +103,46 @@ namespace KshToVox.window
 
 		private void SongListTextBox_SelectedValueChanged(object sender, EventArgs e)
 		{
-			
-			if (SongListTextBox.SelectedItem == null)
-				Program.UpdateSeletedSongId(-1);
-			else
-			{
-				KeyValuePair<int, Song> songId = (KeyValuePair<int, Song>)SongListTextBox.SelectedItem;
-				Program.UpdateSeletedSongId(songId.Key);
-				
-			}
+            /*	
+            if (SongListTextBox.SelectedItem == null)
+                Program.UpdateSeletedSongId(-1);
+            else
+            {
+                KeyValuePair<int, Song> songId = (KeyValuePair<int, Song>)SongListTextBox.SelectedItem;
+                Program.UpdateSeletedSongId(songId.Key);
 
-			UpdateViewStatic();
-		}
+            }
+
+            UpdateViewStatic();
+            */
+        }
+
+        private void SongListTextBox_MouseClick(object sender, MouseEventArgs e)
+        {	
+            if (SongListTextBox.SelectedItem != null)
+            { 
+                KeyValuePair<int, Song> songId = (KeyValuePair<int, Song>)SongListTextBox.SelectedItem;
+                Program.UpdateSeletedSongId(songId.Key);
+
+            }
+            UpdateViewStatic();
+        }
+
+        private void SongListTextBox_MouseLeave(object sender, EventArgs e)
+        {
+            if (SongListTextBox.SelectedItem != null)
+            {
+                KeyValuePair<int, Song> songId = (KeyValuePair<int, Song>)SongListTextBox.SelectedItem;
+                Program.UpdateSeletedSongId(songId.Key);
+
+            }
+            UpdateViewStatic();
+        }
+
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            e.Cancel = Program.CheckUnsavedB4Closing();
+        }
+
     }
 }
