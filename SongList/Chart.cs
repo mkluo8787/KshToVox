@@ -8,7 +8,7 @@ using System.IO;
 
 namespace SongList
 {
-	class Chart
+	public class Chart
 	{
 		class TimePos
 		{
@@ -57,20 +57,114 @@ namespace SongList
         }
 		class FxEffect
 		{
-			enum FxType
-			{
-			}
-
-			private double attributes;
+            public enum FxType
+            {
+                Retrigger,
+                Gate,
+                Flanger,
+                PitchShift,
+                BitCrusher,
+                Phaser,
+                Wobble,
+                TapeStop,
+                Echo,
+                SideChain,
+                _effect8,
+                None
+            }
+            static private Dictionary<string, List<double>> defaultAttributes = new Dictionary<string, List<double>>()
+            {
+                { "Retrigger;8",  new List<double>{ 1, 4, 95.00, 2.00, 1.00, 0.85, 0.15 } },
+                { "Retrigger;12", new List<double>{ 1, 6, 95.00, 2.00, 1.00, 0.85, 0.15 } },
+                { "Retrigger;16", new List<double>{ 1, 8, 95.00, 2.00, 1.00, 0.75, 0.1 } },
+                { "Retrigger;24", new List<double>{ 1, 12, 95.00, 2.00, 1.00, 0.80, 0.1 } },
+                { "Retrigger;32", new List<double>{ 1, 16, 95.00, 2.00, 1.00, 0.87, 0.13 } },
+                { "Gate;4",       new List<double>{ 2, 98.00, 2, 1.00 } },
+                { "Gate;8",       new List<double>{ 2, 98.00, 4, 1.00 } },
+                { "Gate;12",      new List<double>{ 2, 98.00, 6, 1.00 } },
+                { "Gate;16",      new List<double>{ 2, 98.00, 8, 1.00 } },
+                { "Gate;24",      new List<double>{ 2, 98.00, 12, 1.00 } },
+                { "Gate;32",      new List<double>{ 2, 98.00, 16, 1.00 } },
+                { "Flanger",      new List<double>{ 3, 75.00, 2.00, 0.50, 90, 2.00 } },
+                { "PitchShift;12",new List<double>{ 9, 72.00, 12.00 } },
+                { "BitCrusher;10",new List<double>{ 7, 100.00, 12 } },
+                { "Phaser",       new List<double>{0} },
+                { "Wobble;12",    new List<double>{ 6, 0, 3, 80.00, 500.00, 18000.00, 4.00, 1.40 } },
+                { "TapeStop;50",  new List<double>{ 4, 100.00, 8.00, 0.40 } },
+                { "Echo;4;60",    new List<double>{ 1, 4, 100.00, 4.00, 0.60, 1.00, 0.85 } },
+                { "SideChain",    new List<double>{ 5, 90.00, 1.00, 45, 50, 60 } },
+                { "None",         new List<double>{0} },
+            };
+            public FxEffect(FxType type, string strType)
+            {
+                this.type = type;
+                if (defaultAttributes.ContainsKey(strType))
+                    attributes = defaultAttributes[strType];
+                else
+                    throw new Exception("invalid FxType");
+            }
+            public bool isNone()
+            {
+                return this.type == FxType.None;
+            }
+            // override equals
+            public override bool Equals(object obj)
+            {
+                return obj is FxEffect && this == (FxEffect)obj;
+            }
+            public override int GetHashCode()
+            {
+                double tmp = 0;
+                foreach (var att in attributes)
+                    tmp += att;
+                return (int)tmp;
+            }
+            public static bool operator == (FxEffect x, FxEffect y)
+            {
+                return x.attributes.SequenceEqual(y.attributes);
+            }
+            public static bool operator !=(FxEffect x, FxEffect y)
+            {
+                return !x.attributes.SequenceEqual(y.attributes);
+            }
+            public void Print()
+            {
+                Console.WriteLine(this.type);
+            }
+            FxType type;
+            private List<double> attributes;
 		}
 		class Sp
 		{
-			enum SpType
-			{
-			}
-
-			private double attributes;
-		}
+            string type;
+            private int length;
+            private double beginAttribute;
+            private double endAttribute;
+            public const double empty = 100;
+            public Sp(string type, int length, double beginAttribute, double endAttribute = empty)
+            {
+                this.type = type;
+                this.length = length;
+                this.beginAttribute = beginAttribute;
+                this.endAttribute = (endAttribute==empty)? beginAttribute: endAttribute;
+            }
+            public void addLength(int length)
+            {
+                this.length += length;
+            }
+            public void setEndAttribute(double endAttribute)
+            {
+                this.endAttribute = endAttribute;
+            }
+            //Overwrite
+            public override string ToString()
+            {
+                return type + "\t2\t" +
+                        length.ToString() + "\t" +
+                        beginAttribute.ToString() + "\t" +
+                        endAttribute.ToString() + "\t0.00\t0.00";
+            }
+        }
 
 		class Vol
 		{
@@ -79,17 +173,21 @@ namespace SongList
 			private int	flip;
 			private int	filter;
 			private int	expand;
-            public Vol(int pos, int flag, int expand)
+            public Vol(int pos, int flag, int filter, int expand)
             {
                 this.pos = pos;
                 this.flag = flag;
-                this.expand = expand;
                 this.flip = 0;
-                this.filter = 0;
+                this.filter = filter;
+                this.expand = expand;
             }
             public void setFlag(int flag)
             {
                 this.flag = flag;
+            }
+            public void setExpand(int expand)
+            {
+                this.expand = expand;
             }
             public void Print()
             {
@@ -113,6 +211,11 @@ namespace SongList
             {
                 this.length = length;
             }
+            public Fx(int length, FxEffect effect)
+            {
+                this.length = length;
+                this.effect = effect;
+            }
             public void addLength(int length)
             {
                 this.length += length;
@@ -120,6 +223,7 @@ namespace SongList
             public void Print()
             {
                 Console.WriteLine(this.length);
+                this.effect.Print();
             }
             //Overwrite
             public override string ToString()
@@ -212,6 +316,7 @@ namespace SongList
                 list.Add(new Tuple<TimePos, Vol>(new TimePos(tokens[0]),
                             new Vol(int.Parse(tokens[1]),
                                     int.Parse(tokens[2]),
+                                    int.Parse(tokens[4]),
                                     int.Parse(tokens[5]))));
             }
             return list;
@@ -387,7 +492,7 @@ namespace SongList
                            Dictionary<int, int> i2bN, Dictionary<int, int> b2bU, int FXtype)
             {
                 bool isLong = false;
-                string effect;
+                FxEffect effect = new FxEffect(FxEffect.FxType.None, "None");
                 for (int i = 0; i < cL.Count; i++)
                 {
                     if (char.IsNumber(cL[i][0]))
@@ -395,7 +500,8 @@ namespace SongList
                         if (cL[i][FXtype] == '2')
                         {
                             isLong = false;
-                            fx.Add(new Tuple<TimePos, Fx>(index2TimePos[i], new Fx(0)));
+                            effect = new FxEffect(FxEffect.FxType.None, "None");
+                            fx.Add(new Tuple<TimePos, Fx>(index2TimePos[i], new Fx(0, effect)));
                         }
                         else if (cL[i][FXtype] == '1')
                         {
@@ -406,7 +512,7 @@ namespace SongList
                             else
                             {
                                 isLong = true;
-                                fx.Add(new Tuple<TimePos, Fx>(index2TimePos[i], new Fx(b2bU[i2bN[i]])));
+                                fx.Add(new Tuple<TimePos, Fx>(index2TimePos[i], new Fx(b2bU[i2bN[i]], effect)));
                             }
                         }
                         else
@@ -417,38 +523,69 @@ namespace SongList
                     else if (cL[i].Length < 5)
                         continue;
                     else if (cL[i].Substring(0, 5) == "fx-l=" && FXtype == 5)
-                        effect = cL[i].Substring(5);
+                    {
+                        effect = parseEffect(cL[i].Substring(5));
+                        toFxList(ref effect);
+                    }
                     else if (cL[i].Substring(0, 5) == "fx-r=" && FXtype == 6)
-                        effect = cL[i].Substring(5);
+                    {
+                        effect = parseEffect(cL[i].Substring(5));
+                        toFxList(ref effect);
+                    }
                 }
+            }
+            FxEffect parseEffect(string eff)
+            {
+                if (eff.Length == 0) return new FxEffect(FxEffect.FxType.None, "None");
+                else if (eff[0] == 'R') return new FxEffect(FxEffect.FxType.Retrigger, eff);
+                else if (eff[0] == 'G') return new FxEffect(FxEffect.FxType.Gate, eff);
+                else if (eff[0] == 'F') return new FxEffect(FxEffect.FxType.Flanger, eff);
+                else if (eff[0] == 'B') return new FxEffect(FxEffect.FxType.BitCrusher, eff);
+                else if (eff[0] == 'W') return new FxEffect(FxEffect.FxType.Wobble, eff);
+                else if (eff[0] == 'T') return new FxEffect(FxEffect.FxType.TapeStop, eff);
+                else if (eff[0] == 'E') return new FxEffect(FxEffect.FxType.Echo, eff);
+                else if (eff[0] == 'S') return new FxEffect(FxEffect.FxType.SideChain, eff);
+                else if (eff[1] == 'i') return new FxEffect(FxEffect.FxType.PitchShift, eff);
+                else if (eff[1] == 'h') return new FxEffect(FxEffect.FxType.Phaser, eff);
+                else return new FxEffect(FxEffect.FxType.None, "None");
+            }
+            void toFxList(ref FxEffect fe)
+            {
+                if (fe.isNone()) return;
+                if (this.fxList.Count == 12)
+                {
+                    // FXeffect type over 12
+                    if (!this.fxList.Contains(fe))
+                    {
+                        fe = new FxEffect(FxEffect.FxType.None, "None");
+                        // should throw some exception
+                        Console.WriteLine("too many type of fxEffect");
+                        return;
+                    }
+                }
+                else if (!this.fxList.Contains(fe))
+                    this.fxList.Add(fe);
             }
             getFXinfo(this.fxL, chartList, index2TimePos, index2barNbr, barNbr2beatUnit, 5);
             getFXinfo(this.fxR, chartList, index2TimePos, index2barNbr, barNbr2beatUnit, 6);
-
+            
             /****************************************
                               VOL
             ****************************************/
-            Dictionary<char, int> Pos1 =
-                new Dictionary<char, int>()
-                {
-                    {'0', 0}, {'2', 5}, {'5', 12}, {'7', 17}, {'A', 25},
-                    {'C', 30}, {'F', 38}, {'H', 43}, {'K', 50}, {'M', 55}, {'N', 57},
-                    {'P', 63}, {'S', 71}, {'U', 76}, {'X', 83}, {'Z', 88},
-                    {'b', 93}, {'e', 101}, {'h', 109}, {'j', 114}, {'m', 121}, {'o', 127}
-                };
-            Dictionary<char, int> Pos2 =
-                new Dictionary<char, int>()
-                {
-                    {'0', 0}, {'2', 5}, {'5', 12}, {'7', 17}, {'A', 25},
-                    {'C', 30}, {'F', 38}, {'H', 43}, {'K', 50}, {'M', 55}, {'N', 57},
-                    {'P', 63}, {'S', 71}, {'U', 76}, {'X', 83}, {'Z', 88},
-                    {'b', 93}, {'e', 101}, {'h', 109}, {'j', 114}, {'m', 121}, {'o', 127}
-                };
-            void getVOLinfo(List<Tuple<TimePos, Vol>> vol, List<string> cL, Dictionary<int, TimePos> i2T,
-                           Dictionary<char, int> p1, Dictionary<char, int> p2, int VOLtype)
+            Dictionary<char, int> Pos = new Dictionary<char, int>();
+            for (int i = 48; i < 58; i++)
+                Pos[(char)i] = (int)(Math.Round(127.0 / 50.0 * (i-48)));
+            for (int i = 65; i < 91; i++)
+                Pos[(char)i] = (int)(Math.Round(127.0 / 50.0 * (i-55)));
+            for (int i = 97; i < 112; i++)
+                Pos[(char)i] = (int)(Math.Round(127.0 / 50.0 * (i-61)));
+            
+            void getVOLinfo(List<Tuple<TimePos, Vol>> vol, List<string> cL,
+                            Dictionary<int, TimePos> i2T, int VOLtype)
             {
                 bool inLine = false;
                 bool expand = false;
+                int flt = 0;
                 for (int i = 0; i < cL.Count; i++)
                 {
                     if (char.IsNumber(cL[i][0]))
@@ -461,19 +598,12 @@ namespace SongList
                                 inLine = expand = false;
                             }
                         }
-                        else if (p2.ContainsKey(cL[i][VOLtype]))
+                        else if (Pos.ContainsKey(cL[i][VOLtype]))
                         {
+                            vol.Add(new Tuple<TimePos, Vol>(index2TimePos[i],
+                                        new Vol(Pos[cL[i][VOLtype]], 0, flt, 1)));
                             if (expand)
-                            {
-                                vol.Add(new Tuple<TimePos, Vol>(index2TimePos[i],
-                                        new Vol(p2[cL[i][VOLtype]], 0, 2)));
-                            }
-                            else
-                            {
-                                char c = cL[i][VOLtype];
-                                vol.Add(new Tuple<TimePos, Vol>(index2TimePos[i],
-                                        new Vol(p1[c], 0, 1)));
-                            }
+                                vol[vol.Count - 1].Item2.setExpand(2);
                             if (!inLine)
                             {
                                 inLine = true;
@@ -481,23 +611,21 @@ namespace SongList
                             }
                         }
                     }
-                    else if (cL[i] == "laserrange_l=2x" && VOLtype == 8)
-                        expand = true;
-                    else if (cL[i] == "laserrange_r=2x" && VOLtype == 9)
-                        expand = true;
+                    else if (cL[i] == "laserrange_l=2x" && VOLtype == 8) expand = true;
+                    else if (cL[i] == "laserrange_r=2x" && VOLtype == 9) expand = true;
+                    else if (cL[i] == "filtertype=hpf1") flt = 4;
+                    else if (cL[i] == "filtertype=lpf1") flt = 2;
+                    else if (cL[i] == "filtertype=bitc") flt = 5;
+                    else if (cL[i] == "filtertype=peak") flt = 0;
                 }
             }
-            getVOLinfo(this.volL, chartList, index2TimePos, Pos1, Pos2, 8);
-            getVOLinfo(this.volR, chartList, index2TimePos, Pos1, Pos2, 9);
+            getVOLinfo(this.volL, chartList, index2TimePos, 8);
+            getVOLinfo(this.volR, chartList, index2TimePos, 9);
             for (int i = 1; i < volL.Count; i++)
-            {
                 volL[i].Item1.fixSlam(volL[i - 1].Item1);
-            }
             for (int i = 1; i < volR.Count; i++)
-            {
                 volR[i].Item1.fixSlam(volR[i - 1].Item1);
-            }
-
+            
             /****************************************
                               beat
             ****************************************/
@@ -538,6 +666,66 @@ namespace SongList
                              endPos
             ****************************************/
             endPos = new TimePos(barCount + 1, 1, 0);
+
+            /****************************************
+                               Sp
+            ****************************************/
+            // "CAM_RotX"
+            double CamX = 0;
+            for (int i = 0; i < chartList.Count; i++)
+            {
+                if (chartList[i].Length < 9) continue;
+                if (chartList[i].Substring(0, 9) == "zoom_top=")
+                {
+                    CamX = Math.Round(Convert.ToDouble(chartList[i].Substring(9)) * (0.0067), 2);
+                    break;
+                }
+            }
+            sp.Add(new Tuple<TimePos, Sp>(new TimePos("001,01,00"), 
+                                          new Sp("CAM_RotX", 0, CamX)));
+            if (shift) sp[sp.Count - 1].Item2.addLength(beat[0].Item2.Item1 * 48);
+            for (int i = 0; i < chartList.Count; i++)
+            {
+                if (char.IsNumber(chartList[i][0]))
+                    sp[sp.Count - 1].Item2.addLength(barNbr2beatUnit[index2barNbr[i]]);
+                else if (chartList[i].Length < 9) continue;
+                else if (chartList[i].Substring(0, 9) == "zoom_top=")
+                {
+                    CamX = Math.Round(Convert.ToDouble(chartList[i].Substring(9)) * (0.0067), 2);
+                    sp[sp.Count - 1].Item2.setEndAttribute(CamX);
+                    sp.Add(new Tuple<TimePos, Sp>(index2TimePos[i],
+                                                  new Sp("CAM_RotX", 0, CamX)));
+                }
+            }
+            sp[sp.Count - 1].Item2.addLength(barNbr2beat[barCount].Item1 * 48);
+            // "CAM_Radi"
+            double CamR = 0;
+            for (int i = 0; i < chartList.Count; i++)
+            {
+                if (chartList[i].Length < 12) continue;
+                if (chartList[i].Substring(0, 12) == "zoom_bottom=")
+                {
+                    CamR = Math.Round(Convert.ToDouble(chartList[i].Substring(12)) * (-0.0067), 2);
+                    break;
+                }
+            }
+            sp.Add(new Tuple<TimePos, Sp>(new TimePos("001,01,00"),
+                                          new Sp("CAM_Radi", 0, CamR)));
+            if (shift) sp[sp.Count - 1].Item2.addLength(beat[0].Item2.Item1 * 48);
+            for (int i = 0; i < chartList.Count; i++)
+            {
+                if (char.IsNumber(chartList[i][0]))
+                    sp[sp.Count - 1].Item2.addLength(barNbr2beatUnit[index2barNbr[i]]);
+                else if (chartList[i].Length < 12) continue;
+                else if (chartList[i].Substring(0, 12) == "zoom_bottom=")
+                {
+                    CamR = Math.Round(Convert.ToDouble(chartList[i].Substring(12)) * (-0.0067), 2);
+                    sp[sp.Count - 1].Item2.setEndAttribute(CamR);
+                    sp.Add(new Tuple<TimePos, Sp>(index2TimePos[i],
+                                                  new Sp("CAM_Radi", 0, CamR)));
+                }
+            }
+            sp[sp.Count - 1].Item2.addLength(barNbr2beat[barCount].Item1 * 48);
         }
 
         // Output to .vox
