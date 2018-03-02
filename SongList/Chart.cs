@@ -8,7 +8,7 @@ using System.IO;
 
 namespace SongList
 {
-	class Chart
+	public class Chart
 	{
 		class TimePos
 		{
@@ -136,12 +136,35 @@ namespace SongList
 		}
 		class Sp
 		{
-			enum SpType
-			{
-			}
-
-			private double attributes;
-		}
+            string type;
+            private int length;
+            private double beginAttribute;
+            private double endAttribute;
+            public const double empty = 100;
+            public Sp(string type, int length, double beginAttribute, double endAttribute = empty)
+            {
+                this.type = type;
+                this.length = length;
+                this.beginAttribute = beginAttribute;
+                this.endAttribute = (endAttribute==empty)? beginAttribute: endAttribute;
+            }
+            public void addLength(int length)
+            {
+                this.length += length;
+            }
+            public void setEndAttribute(double endAttribute)
+            {
+                this.endAttribute = endAttribute;
+            }
+            //Overwrite
+            public override string ToString()
+            {
+                return type + "\t2\t" +
+                        length.ToString() + "\t" +
+                        beginAttribute.ToString() + "\t" +
+                        endAttribute.ToString() + "\t0.00\t0.00";
+            }
+        }
 
 		class Vol
 		{
@@ -602,10 +625,7 @@ namespace SongList
                 volL[i].Item1.fixSlam(volL[i - 1].Item1);
             for (int i = 1; i < volR.Count; i++)
                 volR[i].Item1.fixSlam(volR[i - 1].Item1);
-            foreach(var xxx in volL)
-            {
-                Console.WriteLine(xxx.Item2);
-            }
+            
             /****************************************
                               beat
             ****************************************/
@@ -646,6 +666,66 @@ namespace SongList
                              endPos
             ****************************************/
             endPos = new TimePos(barCount + 1, 1, 0);
+
+            /****************************************
+                               Sp
+            ****************************************/
+            // "CAM_RotX"
+            double CamX = 0;
+            for (int i = 0; i < chartList.Count; i++)
+            {
+                if (chartList[i].Length < 9) continue;
+                if (chartList[i].Substring(0, 9) == "zoom_top=")
+                {
+                    CamX = Math.Round(Convert.ToDouble(chartList[i].Substring(9)) * (0.0067), 2);
+                    break;
+                }
+            }
+            sp.Add(new Tuple<TimePos, Sp>(new TimePos("001,01,00"), 
+                                          new Sp("CAM_RotX", 0, CamX)));
+            if (shift) sp[sp.Count - 1].Item2.addLength(beat[0].Item2.Item1 * 48);
+            for (int i = 0; i < chartList.Count; i++)
+            {
+                if (char.IsNumber(chartList[i][0]))
+                    sp[sp.Count - 1].Item2.addLength(barNbr2beatUnit[index2barNbr[i]]);
+                else if (chartList[i].Length < 9) continue;
+                else if (chartList[i].Substring(0, 9) == "zoom_top=")
+                {
+                    CamX = Math.Round(Convert.ToDouble(chartList[i].Substring(9)) * (0.0067), 2);
+                    sp[sp.Count - 1].Item2.setEndAttribute(CamX);
+                    sp.Add(new Tuple<TimePos, Sp>(index2TimePos[i],
+                                                  new Sp("CAM_RotX", 0, CamX)));
+                }
+            }
+            sp[sp.Count - 1].Item2.addLength(barNbr2beat[barCount].Item1 * 48);
+            // "CAM_Radi"
+            double CamR = 0;
+            for (int i = 0; i < chartList.Count; i++)
+            {
+                if (chartList[i].Length < 12) continue;
+                if (chartList[i].Substring(0, 12) == "zoom_bottom=")
+                {
+                    CamR = Math.Round(Convert.ToDouble(chartList[i].Substring(12)) * (-0.0067), 2);
+                    break;
+                }
+            }
+            sp.Add(new Tuple<TimePos, Sp>(new TimePos("001,01,00"),
+                                          new Sp("CAM_Radi", 0, CamR)));
+            if (shift) sp[sp.Count - 1].Item2.addLength(beat[0].Item2.Item1 * 48);
+            for (int i = 0; i < chartList.Count; i++)
+            {
+                if (char.IsNumber(chartList[i][0]))
+                    sp[sp.Count - 1].Item2.addLength(barNbr2beatUnit[index2barNbr[i]]);
+                else if (chartList[i].Length < 12) continue;
+                else if (chartList[i].Substring(0, 12) == "zoom_bottom=")
+                {
+                    CamR = Math.Round(Convert.ToDouble(chartList[i].Substring(12)) * (-0.0067), 2);
+                    sp[sp.Count - 1].Item2.setEndAttribute(CamR);
+                    sp.Add(new Tuple<TimePos, Sp>(index2TimePos[i],
+                                                  new Sp("CAM_Radi", 0, CamR)));
+                }
+            }
+            sp[sp.Count - 1].Item2.addLength(barNbr2beat[barCount].Item1 * 48);
         }
 
         // Output to .vox
