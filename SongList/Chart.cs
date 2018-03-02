@@ -32,14 +32,16 @@ namespace SongList
             {
                 Console.WriteLine("({0}, {1}, {2})", this.measure, this.beat, this.time);
             }
-            // for Vol
-            public void fixSlam(TimePos prev)
+            // for Vol, false: no slam true: do slam
+            public bool fixSlam(TimePos prev)
             {
                 if (this.measure == prev.measure && this.beat == prev.beat
                                                  && this.time == prev.time + 6)
                 {
                     this.time = prev.time;
+                    return true;
                 }
+                return false;
             }
 
             public int Measure()
@@ -200,6 +202,14 @@ namespace SongList
             public void setExpand(int expand)
             {
                 this.expand = expand;
+            }
+            public void setFlip(int flip)
+            {
+                this.flip = flip;
+            }
+            public int getPos()
+            {
+                return this.pos;
             }
             public void Print()
             {
@@ -585,10 +595,11 @@ namespace SongList
             }
             getFXinfo(this.fxL, chartList, index2TimePos, index2barNbr, barNbr2beatUnit, 5);
             getFXinfo(this.fxR, chartList, index2TimePos, index2barNbr, barNbr2beatUnit, 6);
-            
+
             /****************************************
                               VOL
             ****************************************/
+            Dictionary<string, Tuple<bool, int>> TimePos2Flip = new Dictionary<string, Tuple<bool, int>>();
             Dictionary<char, int> Pos = new Dictionary<char, int>();
             for (int i = 48; i < 58; i++)
                 Pos[(char)i] = (int)(Math.Round(127.0 / 50.0 * (i-48)));
@@ -607,6 +618,27 @@ namespace SongList
                 {
                     if (char.IsNumber(cL[i][0]))
                     {
+                        // for flip, true: left false: right
+                        if (cL[i].Length > 11)
+                        {
+                            if (cL[i][11] == '>')
+                                TimePos2Flip[index2TimePos[i].ToString()] = new Tuple<bool, int>(false, 5);
+                            else if (cL[i][11] == '<')
+                                TimePos2Flip[index2TimePos[i].ToString()] = new Tuple<bool, int>(true, 5);
+                            else
+                            {
+                                int flipNbr = Convert.ToInt32(cL[i].Substring(12));
+                                if (flipNbr <= 96) flipNbr = 2;
+                                else if (flipNbr >= 192) flipNbr = 1;
+                                else flipNbr = 3;
+
+                                if (cL[i][11] == ')')
+                                    TimePos2Flip[index2TimePos[i].ToString()] = new Tuple<bool, int>(false, flipNbr);
+                                else if (cL[i][11] == '(')
+                                    TimePos2Flip[index2TimePos[i].ToString()] = new Tuple<bool, int>(true, flipNbr);
+                            }
+                        }
+                        // else
                         if (cL[i][VOLtype] == '-')
                         {
                             if (inLine)
@@ -638,11 +670,30 @@ namespace SongList
             }
             getVOLinfo(this.volL, chartList, index2TimePos, 8);
             getVOLinfo(this.volR, chartList, index2TimePos, 9);
-            for (int i = 1; i < volL.Count; i++)
-                volL[i].Item1.fixSlam(volL[i - 1].Item1);
-            for (int i = 1; i < volR.Count; i++)
-                volR[i].Item1.fixSlam(volR[i - 1].Item1);
-            
+            // fix slam and set flip
+            void fixSlamAndSetFlip(List<Tuple<TimePos, Vol>> vo)
+            {
+                for (int i = 1; i < vo.Count; i++)
+                    if (vo[i].Item1.fixSlam(vo[i - 1].Item1))
+                    {
+                        if (TimePos2Flip.ContainsKey(vo[i - 1].Item1.ToString()))
+                        {
+                            if (vo[i].Item2.getPos() > vo[i - 1].Item2.getPos() &&
+                                !TimePos2Flip[vo[i - 1].Item1.ToString()].Item1)
+                            {
+                                vo[i - 1].Item2.setFlip(TimePos2Flip[vo[i - 1].Item1.ToString()].Item2);
+                            }
+                            else if (vo[i].Item2.getPos() < vo[i - 1].Item2.getPos() &&
+                                TimePos2Flip[vo[i - 1].Item1.ToString()].Item1)
+                            {
+                                vo[i - 1].Item2.setFlip(TimePos2Flip[vo[i - 1].Item1.ToString()].Item2);
+                            }
+                        }
+                    }
+            }
+            fixSlamAndSetFlip(volL);
+            fixSlamAndSetFlip(volR);
+
             /****************************************
                               beat
             ****************************************/
