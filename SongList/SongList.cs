@@ -94,26 +94,60 @@ namespace SongList
 			loaded = true;
 		}
 
+        public void LoadFromKshSong(string kfcPath, Dictionary<int, int> idToIfs, Dictionary<int, int> idToVer, Dictionary<string, string> typeAttr)
+        {
+            Clear();
+
+            this.kfcPath = kfcPath;
+            this.typeAttr = typeAttr;
+
+            string kshFolderPath = kfcPath + "KshSongs\\";
+            DirectoryInfo kshFolder = new DirectoryInfo(kshFolderPath);
+
+            foreach (DirectoryInfo kshSong in kshFolder.GetDirectories())
+            {
+                if (kshSong.GetFiles("*.ksh").Length == 0)
+                    throw new Exception("Invalid folder in KshSongs!");
+
+                int newId = -1;
+                foreach (KeyValuePair<int, int> idPair in idToIfs)
+                    if ((songs[idPair.Key].IsDummy()) && (idPair.Key >= 256))
+                        newId = idPair.Key;
+                            
+
+                if (newId == -1) throw new Exception("Song DB Full!");
+
+                AddKshSong(kshSong.FullName, newId, idToVer[newId]);
+            }
+
+            loaded = true;
+        }
+
         private void Clear()
         {
             for (int i = 0; i < listSize; ++i)
                 songs[i] = new Song();
         }
 
-		public int AddKshSong(string path, int startId = 0)
+		public int AddKshSong(string path, int startId = 0, int ver = 4)
 		{
-			int newId = 0;
-            foreach (int id in Enumerable.Range(Math.Max(256, startId), 1024))
+            int newId = 0;
+            if (startId == 0)
             {
-                if (songs[id].IsDummy())
+                foreach (int id in Enumerable.Range(Math.Max(256, startId), 1024))
                 {
-                    newId = id;
-                    break;
+                    if (songs[id].IsDummy())
+                    {
+                        newId = id;
+                        break;
+                    }
                 }
+                if (newId == 0) throw new Exception("Song list is full!");
             }
-			if (newId == 0) throw new Exception("Song list is full!");
+            else
+                newId = startId;
 
-			songs[newId] = new Song(newId.ToString(), path);
+            songs[newId] = new Song(newId.ToString(), path, ver);
 
 			return newId;
 		}
@@ -183,6 +217,13 @@ namespace SongList
             xmlFile.Save(dbPath);
 		}
 
+        // Texture Save (Replacement)
+
+        public void SaveTexture()
+        {
+
+        }
+
 		// Utils
 
 		public Song Song(int id) {
@@ -209,6 +250,6 @@ namespace SongList
 		private string kfcPath;
 		private bool loaded = false;
 
-        private static Dictionary<string, string> typeAttr = new Dictionary<string, string>();
+        private Dictionary<string, string> typeAttr = new Dictionary<string, string>();
 	}
 }

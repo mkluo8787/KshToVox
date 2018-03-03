@@ -23,7 +23,8 @@ namespace SongList
 
         // From K-Shoot
         public Song(string label,
-                    string kshPath)
+                    string kshPath,
+                    int specificVer = 0)
         {
             // ogg mp3 wav
 
@@ -65,7 +66,10 @@ namespace SongList
             data["bg_no"] = "0";
             data["genre"] = "16";
             data["is_fixed"] = "1";
-            data["version"] = "3";
+            if (specificVer == 0)
+                data["version"] = "3";
+            else
+                data["version"] = specificVer.ToString();
             data["demo_pri"] = "-2";
             data["inf_ver"] = "3";
 

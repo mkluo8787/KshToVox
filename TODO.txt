@@ -26,10 +26,14 @@ Vox versions handle.
 
 End Pos = Last Measure + 2
 
-sox exe/dll pack
+sox/2dxConvert exe/dll pack
 
 selfmade & original chart grouping
 
 preview music
 
 find list size
+
+no beat tag on legacy ksh chart
+
+song length < 2:30
