@@ -103,7 +103,8 @@ namespace SongList
                 if (defaultAttributes.ContainsKey(strType))
                     attributes = defaultAttributes[strType];
                 else
-                    throw new Exception("invalid FxType");
+                    attributes = defaultAttributes["None"];
+                    //throw new Exception("invalid FxType");
             }
             public bool isNone()
             {
@@ -419,6 +420,8 @@ namespace SongList
             for (int i = 0; i < chartList.Count; i++)
             {
                 index2barNbr.Add(i, barCount + 1);
+                if (chartList[i].Length < 2)
+                    continue;
                 if (chartList[i].Substring(0, 2) == "--")
                     barCount++;
             }
@@ -441,6 +444,8 @@ namespace SongList
             int rowNbrTmp = 0;
             for (int i = 0; i < chartList.Count; i++)
             {
+                if (chartList[i].Length < 2)
+                    continue;
                 if (chartList[i].Substring(0, 2) == "--")
                 {
                     barNbr2rowNbr.Add(index2barNbr[i], rowNbrTmp);
@@ -459,6 +464,8 @@ namespace SongList
             int beatTotal;
             for (int i = 0; i < chartList.Count; i++)
             {
+                if (chartList[i].Length < 2)
+                    continue;
                 if (chartList[i].Substring(0, 2) == "--")
                 {
                     rowNbrTmp = 0;
@@ -479,6 +486,8 @@ namespace SongList
                 bool isLong = false;
                 for (int i = 0; i < cL.Count; i++)
                 {
+                    if (chartList[i].Length < 2)
+                        continue;
                     if (char.IsNumber(cL[i][0]))
                     {
                         if (cL[i][BTtype] == '1')
@@ -520,6 +529,8 @@ namespace SongList
                 FxEffect effect = new FxEffect(FxEffect.FxType.None, "None");
                 for (int i = 0; i < cL.Count; i++)
                 {
+                    if (chartList[i].Length < 2)
+                        continue;
                     if (char.IsNumber(cL[i][0]))
                     {
                         if (cL[i][FXtype] == '2')
@@ -616,6 +627,8 @@ namespace SongList
                 int flt = 0;
                 for (int i = 0; i < cL.Count; i++)
                 {
+                    if (chartList[i].Length < 2)
+                        continue;
                     if (char.IsNumber(cL[i][0]))
                     {
                         // for flip, true: left false: right
@@ -719,6 +732,8 @@ namespace SongList
             ****************************************/
             for (int i = 0; i < chartList.Count; i++)
             {
+                if (chartList[i].Length < 2)
+                    continue;
                 if (chartList[i].Substring(0, 2) == "t=")
                 {
                     if (bpm.Count == 0)
@@ -756,6 +771,8 @@ namespace SongList
             if (shift) sp[sp.Count - 1].Item2.addLength(beat[0].Item2.Item1 * 48);
             for (int i = 0; i < chartList.Count; i++)
             {
+                if (chartList[i].Length < 2)
+                    continue;
                 if (char.IsNumber(chartList[i][0]))
                     sp[sp.Count - 1].Item2.addLength(barNbr2beatUnit[index2barNbr[i]]);
                 else if (chartList[i].Length < 9) continue;
@@ -784,6 +801,8 @@ namespace SongList
             if (shift) sp[sp.Count - 1].Item2.addLength(beat[0].Item2.Item1 * 48);
             for (int i = 0; i < chartList.Count; i++)
             {
+                if (chartList[i].Length < 2)
+                    continue;
                 if (char.IsNumber(chartList[i][0]))
                     sp[sp.Count - 1].Item2.addLength(barNbr2beatUnit[index2barNbr[i]]);
                 else if (chartList[i].Length < 12) continue;
