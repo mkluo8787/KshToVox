@@ -8,7 +8,7 @@ using System.IO;
 
 namespace SongList
 {
-	public class Chart
+	class Chart
 	{
 		class TimePos
 		{
@@ -711,6 +711,8 @@ namespace SongList
                         new Tuple<int, int>((int)(chartList[i][5] - '0'), (int)(chartList[i][7] - '0'))));
                 }
             }
+            if (beat.Count == 0) beat.Add(new Tuple<TimePos, Tuple<int, int>>(new TimePos("001,01,00"),
+                             new Tuple<int, int>(4, 4)));
 
             /****************************************
                                bpm
