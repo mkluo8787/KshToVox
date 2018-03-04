@@ -369,20 +369,20 @@ namespace SongList
             if (duraMs < 0)
             {
                 if (trimMs > 0)
-                    startInfo.Arguments = "-G -q \"" + src + "\" -e ms-adpcm \"" + dest + "\" trim " + trimSec.ToString() + " -0.0";
+                    startInfo.Arguments = "-G -q \"" + src + "\" -r 44100 -e ms-adpcm \"" + dest + "\" trim " + trimSec.ToString() + " -0.0";
                 else if (trimMs < 0)
-                    startInfo.Arguments = "-G -q \"" + src + "\" -e ms-adpcm \"" + dest + "\" pad " + (-trimSec).ToString() + " 0.0";
+                    startInfo.Arguments = "-G -q \"" + src + "\" -r 44100 -e ms-adpcm \"" + dest + "\" pad " + (-trimSec).ToString() + " 0.0";
                 else
-                    startInfo.Arguments = "-G -q \"" + src + "\" -e ms-adpcm \"" + dest + "\"";
+                    startInfo.Arguments = "-G -q \"" + src + "\" -r 44100 -e ms-adpcm \"" + dest + "\"";
             }
             else
             {
                 if (trimMs > 0)
-                    startInfo.Arguments = "-G -q \"" + src + "\" -e ms-adpcm \"" + dest + "\" trim " + trimSec.ToString() + " " + duraSec.ToString();
+                    startInfo.Arguments = "-G -q \"" + src + "\" -r 44100 -e ms-adpcm \"" + dest + "\" trim " + trimSec.ToString() + " " + duraSec.ToString();
                 else if (trimMs < 0)
-                    startInfo.Arguments = "-G -q \"" + src + "\" -e ms-adpcm \"" + dest + "\" pad " + (-trimSec).ToString() + " 0.0 trim 0 " + duraSec.ToString();
+                    startInfo.Arguments = "-G -q \"" + src + "\" -r 44100 -e ms-adpcm \"" + dest + "\" pad " + (-trimSec).ToString() + " 0.0 trim 0 " + duraSec.ToString();
                 else
-                    startInfo.Arguments = "-G -q \"" + src + "\" -e ms-adpcm \"" + dest + "\" trim 0 " + duraSec.ToString();
+                    startInfo.Arguments = "-G -q \"" + src + "\" -r 44100 -e ms-adpcm \"" + dest + "\" trim 0 " + duraSec.ToString();
             }
             process.StartInfo = startInfo;
             Console.WriteLine(startInfo.Arguments);
