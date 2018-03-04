@@ -44,6 +44,6 @@ ONLY supporting one jacket now.
     multi-jackets may lead to a much more complicated chart replacement.
     ( OR trim the difficulty to the same ? )
 
-Cache unchanged charts
+Installation?
 
-Installation
+Cache mechanic design (now using a naive method) 

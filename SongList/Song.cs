@@ -78,6 +78,10 @@ namespace SongList
             // Indicates that this is a custom simfile
             data["custom"] = "1";
 
+            // Caching imformation
+            data["kshFolder"] = kshPath;
+            data["lastModFolder"] = Directory.GetLastWriteTime(kshPath).ToString();
+
             // Parsing for Charts
             foreach (string kshFile in kshFiles)
 			{
@@ -156,7 +160,7 @@ namespace SongList
 
                 // ONLY supporting one jacket now!
 
-                image = new Image(imagePath);
+                image = new FshImage(imagePath);
 
                 /*
                 if (!images.ContainsKey(imagePath))
@@ -346,6 +350,8 @@ namespace SongList
 
         public void ImageToTex(string tgaName, string texPath, int pixel)
         {
+            Util.ConsoleWrite("Replacing " + image.Name() + " info " + tgaName + "... (It should took a while)");
+
             // Image to tga (in cache)
             string tgaPath = Util.cachePath + tgaName;
 
@@ -362,72 +368,50 @@ namespace SongList
 
             double duraSec = 10.30;
 
-            System.Diagnostics.Process process = new System.Diagnostics.Process();
-			System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
-			startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
-			startInfo.FileName = "tools\\sox\\sox.exe";
+            string soxExe = "tools\\sox\\sox.exe";
+
             if (duraMs < 0)
             {
                 if (trimMs > 0)
-                    startInfo.Arguments = "-G -q \"" + src + "\" -r 44100 -e ms-adpcm \"" + dest + "\" trim " + trimSec.ToString() + " -0.0";
+                    Util.Execute(soxExe, "-G -q \"" + src + "\" -r 44100 -e ms-adpcm \"" + dest + "\" trim " + trimSec.ToString() + " -0.0");
                 else if (trimMs < 0)
-                    startInfo.Arguments = "-G -q \"" + src + "\" -r 44100 -e ms-adpcm \"" + dest + "\" pad " + (-trimSec).ToString() + " 0.0";
+                    Util.Execute(soxExe, "-G -q \"" + src + "\" -r 44100 -e ms-adpcm \"" + dest + "\" pad " + (-trimSec).ToString() + " 0.0");
                 else
-                    startInfo.Arguments = "-G -q \"" + src + "\" -r 44100 -e ms-adpcm \"" + dest + "\"";
+                    Util.Execute(soxExe, "-G -q \"" + src + "\" -r 44100 -e ms-adpcm \"" + dest + "\"");
             }
             else
             {
                 if (trimMs > 0)
-                    startInfo.Arguments = "-G -q \"" + src + "\" -r 44100 -e ms-adpcm \"" + dest + "\" trim " + trimSec.ToString() + " " + duraSec.ToString();
+                    Util.Execute(soxExe, "-G -q \"" + src + "\" -r 44100 -e ms-adpcm \"" + dest + "\" trim " + trimSec.ToString() + " " + duraSec.ToString());
                 else if (trimMs < 0)
-                    startInfo.Arguments = "-G -q \"" + src + "\" -r 44100 -e ms-adpcm \"" + dest + "\" pad " + (-trimSec).ToString() + " 0.0 trim 0 " + duraSec.ToString();
+                    Util.Execute(soxExe, "-G -q \"" + src + "\" -r 44100 -e ms-adpcm \"" + dest + "\" pad " + (-trimSec).ToString() + " 0.0 trim 0 " + duraSec.ToString());
                 else
-                    startInfo.Arguments = "-G -q \"" + src + "\" -r 44100 -e ms-adpcm \"" + dest + "\" trim 0 " + duraSec.ToString();
+                    Util.Execute(soxExe, "-G -q \"" + src + "\" -r 44100 -e ms-adpcm \"" + dest + "\" trim 0 " + duraSec.ToString());
             }
-            process.StartInfo = startInfo;
-            Console.WriteLine(startInfo.Arguments);
-			process.Start();
-            process.WaitForExit();
         }
 
         private static void Fade(string src)
         {
-            System.Diagnostics.Process process = new System.Diagnostics.Process();
-            System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
-            startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
-            startInfo.FileName = "tools\\sox\\sox.exe";
-
             string dest = src;
             FileInfo currentFile = new FileInfo(src);
-            string source = currentFile.Directory.FullName + "\\" + RandomString(20) + currentFile.Extension;
+            string source = currentFile.Directory.FullName + "\\" + Util.RandomString(20) + currentFile.Extension;
             currentFile.MoveTo(source);
 
-            startInfo.Arguments = "-G -q \"" + source + "\" \"" + dest + "\" fade q 2 0 2";
-            
-            process.StartInfo = startInfo;
-            Console.WriteLine(startInfo.Arguments);
-            process.Start();
-            process.WaitForExit();
+            string soxExe = "tools\\sox\\sox.exe";
+
+            Util.Execute(soxExe, "-G -q \"" + source + "\" \"" + dest + "\" fade q 2 0 2");
         }
 
         private static void WavBlockSizeFix(string src)
         {
-            System.Diagnostics.Process process = new System.Diagnostics.Process();
-            System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
-            startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
-            startInfo.FileName = "tools\\2dxConvert\\2dxWavConvert.exe";
-
             string dest = src;
             FileInfo currentFile = new FileInfo(src);
-            string source = currentFile.Directory.FullName + "\\" + RandomString(20) + currentFile.Extension;
+            string source = currentFile.Directory.FullName + "\\" + Util.RandomString(20) + currentFile.Extension;
             currentFile.MoveTo(source);
 
-            startInfo.Arguments = "\"" + source + "\" \"" + dest + "\" preview";
+            string convertExe = "tools\\2dxConvert\\2dxWavConvert.exe";
 
-            process.StartInfo = startInfo;
-            Console.WriteLine(startInfo.Arguments);
-            process.Start();
-            process.WaitForExit();
+            Util.Execute(convertExe, "\"" + source + "\" \"" + dest + "\" preview");
         }
 
         // Utils
@@ -527,15 +511,6 @@ namespace SongList
 			return (data, chart);
 		}
 
-        private static Random random = new Random();
-
-        public static string RandomString(int length)
-        {
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-            return new string(Enumerable.Repeat(chars, length)
-              .Select(s => s[random.Next(s.Length)]).ToArray());
-        }
-
         // Override
         public override string ToString()
 		{
@@ -550,7 +525,7 @@ namespace SongList
         // Image (Jacket)
 
         //Dictionary<string, Tuple<Image, string>> images = new Dictionary<string, Tuple<Image, string>>();
-        Image image;
+        FshImage image;
 
         //string songCachePath;
 

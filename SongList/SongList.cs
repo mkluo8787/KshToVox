@@ -89,16 +89,27 @@ namespace SongList
                     chartData[dif]["limited"] = "3";
                 }
 
-				Song song = new Song(data, chartData, kfcPath, false);
+				Song song = new Song(data, chartData, kfcPath, true);
 				songs[id] = song;
-			}
+
+                // Caching imformation
+                if (data["custom"] == "1")
+                {
+                    kshPathToId[data["kshFolder"]] = id;
+
+                    lastModifiedFolder[id] = data["lastModFolder"];
+                    //lastModifiedChart[id] = data["lastModChart"];
+                    //lastModifiedPic[id] = data["lastModPic"];
+                    //lastModifiedSound[id] = data["lastModSound"];
+                }
+            }
 
 			stream.Close();
 
 			loaded = true;
 		}
 
-        public void LoadFromKshSong(string kfcPath, Dictionary<int, int> idToIfs, Dictionary<int, int> idToVer, Dictionary<string, string> typeAttr)
+        public void LoadFromKshSong(string kfcPath, Dictionary<int, int> idToIfs, Dictionary<int, int> idToVer, Dictionary<string, string> typeAttr, bool firstLoad)
         {
             Clear();
 
@@ -109,10 +120,49 @@ namespace SongList
             string kshFolderPath = kfcPath + "KshSongs\\";
             DirectoryInfo kshFolder = new DirectoryInfo(kshFolderPath);
 
+            if (!firstLoad)
+            {
+                Load(kfcPath);
+
+                // Check for oldid existance
+
+                for (int id = 0; id < listSize; ++id)
+                {
+                    if (songs[id].Data("custom") == "1")
+                    {
+                        DirectoryInfo di = new DirectoryInfo(songs[id].Data("kshFolder"));
+                        DirectoryInfo[] dis = kshFolder.GetDirectories();
+
+                        bool hit = false;
+                        foreach (DirectoryInfo existDi in dis)
+                            if (existDi.FullName == di.FullName)
+                                hit = true;
+
+                        if (!hit) // Ksh Folder removed!
+                        {
+                            DeleteId(id);
+                            lastModifiedFolder.Remove(id);
+                        }
+                    }
+                }
+            }
+
             foreach (DirectoryInfo kshSong in kshFolder.GetDirectories())
             {
+                if (kshPathToId.ContainsKey(kshSong.FullName)) // cache hit!
+                {
+                    int oldId = kshPathToId[kshSong.FullName];
+                    if (Directory.GetLastWriteTime(kshSong.FullName).ToString() ==
+                        lastModifiedFolder[oldId])
+                    {
+                        Util.ConsoleWrite("Song: " + songs[kshPathToId[kshSong.FullName]].Data("title_name") + " Ksh data is unchanged. Will be skipped while saving.");
+                        continue; // Skips the entire loading
+                    }
+                }
+
                 if (kshSong.GetFiles("*.ksh").Length == 0)
-                    throw new Exception("Invalid folder in KshSongs!");
+                    //throw new Exception("Invalid folder in KshSongs!");
+                    continue;
 
                 int newId = -1;
                 foreach (KeyValuePair<int, int> idPair in idToIfs)
@@ -123,6 +173,8 @@ namespace SongList
                 if (newId == -1) throw new Exception("Song DB Full!");
 
                 AddKshSong(kshSong.FullName, newId, idToVer[newId]);
+
+                Util.ConsoleWrite("Song: " + songs[newId].Data("title_name") + " Ksh data loaded.");
             }
 
             loaded = true;
@@ -186,7 +238,8 @@ namespace SongList
                 if (song.IsDummy()) continue;
 
                 // Write .vox and 2dx
-                song.Save(kfcPath);
+                if (!IsUnmoddedCustom(id))
+                    song.Save(kfcPath);
 
                 // Write to db
                 XElement music = new XElement("music", new XAttribute("id", id));
@@ -234,6 +287,7 @@ namespace SongList
             {
                 Song song = songs[id];
                 if (song.IsDummy()) continue;
+                if (IsUnmoddedCustom(id)) continue;
 
                 if (!targetIfs.Contains(idToIfs[id]))
                     targetIfs.Add(idToIfs[id]);
@@ -254,8 +308,10 @@ namespace SongList
             {
                 Song song = songs[id];
                 if (song.IsDummy()) continue;
+                if (IsUnmoddedCustom(id)) continue;
 
                 string texPath = texPaths[idToIfs[id]];
+
                 song.ImageToTex("jk_" + song.BaseNameNum() + "_1.tga", texPath + "tex\\", 202);
             }
 
@@ -276,6 +332,7 @@ namespace SongList
             {
                 Song song = songs[id];
                 if (song.IsDummy()) continue;
+                if (IsUnmoddedCustom(id)) continue;
 
                 string[] sufs = {"_b", "_s"};
                 foreach (string suf in sufs)
@@ -316,7 +373,21 @@ namespace SongList
 
         public static string GetCachePath() { return cachePath; }
 
-		public bool Loaded() { return loaded; }
+        private bool IsUnmoddedCustom(int id)
+        {
+            if (!lastModifiedFolder.ContainsKey(id)) return false;
+
+            if (songs[id].Data("custom") == "1")
+            {
+                string path = songs[id].Data("kshFolder");
+                return Directory.GetLastWriteTime(path).ToString() ==
+                        lastModifiedFolder[id];
+            }
+            else
+                return false;
+        }
+
+        public bool Loaded() { return loaded; }
 
         // Datas
 
@@ -328,5 +399,7 @@ namespace SongList
         private Dictionary<string, string> typeAttr = new Dictionary<string, string>();
         private Dictionary<int, int> idToIfs;
 
+        private Dictionary<string, int> kshPathToId = new Dictionary<string, int>();
+        private Dictionary<int, string> lastModifiedFolder = new Dictionary<int, string>();
     }
 }

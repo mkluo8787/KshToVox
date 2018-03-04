@@ -5,13 +5,14 @@ using System.Text;
 using System.Threading.Tasks;
 
 using System.IO;
+using System.Diagnostics;
 
 namespace Utility
 {
     public static class Util
     {
-        readonly public static string kfcPath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "\\";
-        //readonly public static string kfcPath = @"E:\CHIKAN\ks_to_SDVX\Minimal SDVX HH for FX testing\";
+        //readonly public static string kfcPath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "\\";
+        readonly public static string kfcPath = @"E:\CHIKAN\ks_to_SDVX\Minimal SDVX HH for FX testing\";
         readonly public static string binPath = System.IO.Path.GetDirectoryName(
             System.Reflection.Assembly.GetExecutingAssembly().Location
             ) + "\\";
@@ -25,16 +26,24 @@ namespace Utility
             startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
             startInfo.FileName = exe;
             startInfo.Arguments = arg;
-            startInfo.UseShellExecute = false;
-            startInfo.RedirectStandardOutput = true;
+            //startInfo.UseShellExecute = false;
+            //startInfo.RedirectStandardOutput = true;
 
             process.StartInfo = startInfo;
             process.Start();
 
-            while (!process.StandardOutput.EndOfStream)
-                Console.WriteLine(process.StandardOutput.ReadLine());
+            //while (!process.StandardOutput.EndOfStream)
+            //    Console.WriteLine(process.StandardOutput.ReadLine());
 
             process.WaitForExit();
+        }
+
+        public static void ConsoleWrite(string msg)
+        {
+            StackTrace st = new StackTrace();
+            for (int i = 0; i < st.FrameCount; ++i)
+                Console.Write("  ");
+            Console.WriteLine(msg);
         }
 
         public static string IfsToTga(string ifsPath)
@@ -118,6 +127,15 @@ namespace Utility
             FileInfo hashFile = new FileInfo(fName);
             File.Delete(texPath + hashFile.Name);
             hashFile.MoveTo(texPath + hashFile.Name);               
+        }
+
+        private static Random random = new Random();
+
+        public static string RandomString(int length)
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            return new string(Enumerable.Repeat(chars, length)
+              .Select(s => s[random.Next(s.Length)]).ToArray());
         }
     }
 }

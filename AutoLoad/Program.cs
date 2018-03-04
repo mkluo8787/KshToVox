@@ -25,13 +25,26 @@ namespace AutoLoad
 
             SongList.SongList songList = new SongList.SongList();
 
-            songList.LoadFromKshSong(Util.kfcPath, metaDb.IdToIfs(), metaDb.IdToVer(), metaDb.TypeAttr());
+            Util.ConsoleWrite("Loading form KshSongs...");
+
+            songList.LoadFromKshSong(   Util.kfcPath, 
+                                        metaDb.IdToIfs(), 
+                                        metaDb.IdToVer(), 
+                                        metaDb.TypeAttr(),
+                                        metaDb.FirstLoad());
+
+            Util.ConsoleWrite("Saving song...");
 
             songList.Save();
 
             ClearCache();
 
-            //songList.SaveTexture();
+            Util.ConsoleWrite("Saving texture...");
+
+            songList.SaveTexture();
+
+            Util.ConsoleWrite("\nLoading Done. Press any key to proceed...");
+            Console.ReadKey();
         }
 
         static void ClearCache()
@@ -39,6 +52,11 @@ namespace AutoLoad
             if (Directory.Exists(Util.cachePath))
                 Directory.Delete(Util.cachePath, true);
             Directory.CreateDirectory(Util.cachePath);
+
+            DirectoryInfo di = new DirectoryInfo(Util.binPath);
+            foreach (FileInfo fi in di.GetFiles())
+                if (!fi.Name.Contains("."))
+                    File.Delete(fi.FullName);
         }
     }
 
@@ -47,6 +65,8 @@ namespace AutoLoad
         Dictionary<int, int> idToIfs;
         Dictionary<int, int> idToVer;
         Dictionary<string, string> typeAttr = new Dictionary<string, string>();
+
+        bool firstLoad;
 
         public MetaInfo()
         {
@@ -60,6 +80,8 @@ namespace AutoLoad
 
             if (File.Exists(mataDbPath))
             {
+                firstLoad = false;
+
                 XElement inXml = XElement.Load(mataDbPath);
 
                 foreach (XElement usedId in inXml.Elements("usedId"))
@@ -75,6 +97,10 @@ namespace AutoLoad
             }
             else
             {
+                Util.ConsoleWrite("Meta DB not found. Parsing from original KFC data...");
+
+                firstLoad = true;
+
                 // Parse Used Ids
 
                 string dbPath = Util.kfcPath + "\\data\\others\\music_db.xml";
@@ -157,6 +183,8 @@ namespace AutoLoad
         public Dictionary<int, int> IdToIfs() { return idToIfs; }
         public Dictionary<int, int> IdToVer() { return idToVer; }
         public Dictionary<string, string> TypeAttr() { return typeAttr; }
+
+        public bool FirstLoad() { return firstLoad;  }
 
         //public int IfsId(int id) { return idToIfs[id]; }
         //public bool ContainsId(int id) { return idToIfs.ContainsKey(id); }
