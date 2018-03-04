@@ -8,16 +8,20 @@ using System.IO;
 using System.Xml.Linq;
 
 using IfsParse;
+using Utility;
 
 namespace SongList
 {
 	public class SongList
 	{
-        private readonly static int listSize = 1200;
+        readonly public static string binPath = System.IO.Path.GetDirectoryName(
+            System.Reflection.Assembly.GetExecutingAssembly().Location
+            ) + "\\";
+        readonly public static string toolsPath = binPath + @"tools\";
+        readonly public static string cachePath = binPath + @"cache\";
+
+        private readonly static int listSize = 1061;
 		public readonly static string[] DIFS = { "novice", "advanced", "exhaust", "infinite" };
-		public readonly static string cachePath = System.IO.Path.GetDirectoryName(
-			System.Reflection.Assembly.GetExecutingAssembly().Location
-			) + "\\cache\\";
 
 		public SongList()
 		{
@@ -100,6 +104,7 @@ namespace SongList
 
             this.kfcPath = kfcPath;
             this.typeAttr = typeAttr;
+            this.idToIfs = idToIfs;
 
             string kshFolderPath = kfcPath + "KshSongs\\";
             DirectoryInfo kshFolder = new DirectoryInfo(kshFolderPath);
@@ -134,7 +139,7 @@ namespace SongList
             int newId = 0;
             if (startId == 0)
             {
-                foreach (int id in Enumerable.Range(Math.Max(256, startId), 1024))
+                foreach (int id in Enumerable.Range(Math.Max(256, startId), listSize))
                 {
                     if (songs[id].IsDummy())
                     {
@@ -221,7 +226,77 @@ namespace SongList
 
         public void SaveTexture()
         {
+            // s_jackets
 
+            List<int> targetIfs = new List<int>();
+
+            for (int id = 0; id < listSize; ++id)
+            {
+                Song song = songs[id];
+                if (song.IsDummy()) continue;
+
+                if (!targetIfs.Contains(idToIfs[id]))
+                    targetIfs.Add(idToIfs[id]);
+            }
+
+            Dictionary<int, string> texPaths = new Dictionary<int, string>();
+
+            foreach (int ifsId in targetIfs)
+            {
+                // DO: ifs -> tex
+
+                string ifsPath = Util.kfcPath + "data\\graphics\\s_jacket" + ifsId.ToString().PadLeft(2, '0') + ".ifs";
+
+                texPaths[ifsId] = Util.IfsToTex(ifsPath);
+            }
+
+            for (int id = 0; id < listSize; ++id)
+            {
+                Song song = songs[id];
+                if (song.IsDummy()) continue;
+
+                string texPath = texPaths[idToIfs[id]];
+                song.ImageToTex("jk_" + song.BaseNameNum() + "_1.tga", texPath + "tex\\", 202);
+            }
+
+            foreach (int ifsId in targetIfs)
+            {
+                // DO: tex -> ifs
+
+                string texPath = texPaths[ifsId];
+
+                string ifsPath = Util.kfcPath + "data\\graphics\\s_jacket" + ifsId.ToString().PadLeft(2, '0') + ".ifs";
+
+                Util.TexToIfs(texPath, ifsPath);
+            }
+
+            // jk_b and jk_s
+            
+            for (int id = 0; id < listSize; ++id)
+            {
+                Song song = songs[id];
+                if (song.IsDummy()) continue;
+
+                string[] sufs = {"_b", "_s"};
+                foreach (string suf in sufs)
+                {
+                    string ifsPath = Util.kfcPath + "data\\graphics\\jk\\jk_" + song.BaseNameNum() + "_1" + suf + ".ifs";
+
+                    string texPath = Util.IfsToTex(ifsPath);
+
+                    string tgaName = "jk_" + song.BaseNameNum() + "_1" + suf + ".tga";
+
+                    if (suf == "_b")
+                        song.ImageToTex(tgaName, texPath + "tex\\", 452);
+                    else if (suf == "_s")
+                        song.ImageToTex(tgaName, texPath + "tex\\", 74);
+                    else
+                        throw new Exception();
+
+                    Util.TexToIfs(texPath, ifsPath);
+                }
+            }
+            
         }
 
 		// Utils
@@ -251,5 +326,7 @@ namespace SongList
 		private bool loaded = false;
 
         private Dictionary<string, string> typeAttr = new Dictionary<string, string>();
-	}
+        private Dictionary<int, int> idToIfs;
+
+    }
 }

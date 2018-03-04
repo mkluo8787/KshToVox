@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Text.RegularExpressions;
 
+using Utility;
+
 namespace SongList
 {
 	public class Song
@@ -147,7 +149,33 @@ namespace SongList
                     else
                         preSoundCaches.Add(soundPath, new Tuple<string, string>(preSoundPath, Suffix(SongList.DIFS[id])));
                 }
-                
+
+                // Parsing for Image
+
+                string imagePath = kshPath + "\\" + kshParse["jacket"];
+
+                // ONLY supporting one jacket now!
+
+                image = new Image(imagePath);
+
+                /*
+                if (!images.ContainsKey(imagePath))
+                {
+                    string ext = Path.GetExtension(imagePath);
+                    if (!((ext == ".bmp") || (ext == ".jpg") || (ext == ".png")))
+                        throw new Exception("Image file format " + ext + " invalid!");
+
+                    if (images.Count == 0)
+                    {
+                        string imageName = "jk_" + BaseNameNum();
+                        images.Add(imagePath, new Tuple<Image, string>(new Image(imagePath, imageName), "_1"));
+                    }                    
+                    else
+                        images.Add(imagePath, new Tuple<Image, string>(new Image(imagePath), "_" + id.ToString()));
+                    
+                }
+                */
+
             }
 
             // Fill in empty data for chartdata
@@ -316,7 +344,18 @@ namespace SongList
             }
         }
 
-		private static void ConvertAndTrimToWav(string src, string dest, int trimMs, int duraMs)
+        public void ImageToTex(string tgaName, string texPath, int pixel)
+        {
+            // Image to tga (in cache)
+            string tgaPath = Util.cachePath + tgaName;
+
+            image.ToTga(tgaPath, pixel);
+
+            // tga to tex
+            Util.TgaToTex(tgaPath, texPath);
+        }
+
+        private static void ConvertAndTrimToWav(string src, string dest, int trimMs, int duraMs)
 		{
             double trimSec = System.Convert.ToDouble(trimMs) * 0.001;
             //double duraSec = System.Convert.ToDouble(duraMs) * 0.001;
@@ -326,7 +365,7 @@ namespace SongList
             System.Diagnostics.Process process = new System.Diagnostics.Process();
 			System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
 			startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
-			startInfo.FileName = "sox\\sox.exe";
+			startInfo.FileName = "tools\\sox\\sox.exe";
             if (duraMs < 0)
             {
                 if (trimMs > 0)
@@ -356,7 +395,7 @@ namespace SongList
             System.Diagnostics.Process process = new System.Diagnostics.Process();
             System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
             startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
-            startInfo.FileName = "sox\\sox.exe";
+            startInfo.FileName = "tools\\sox\\sox.exe";
 
             string dest = src;
             FileInfo currentFile = new FileInfo(src);
@@ -376,7 +415,7 @@ namespace SongList
             System.Diagnostics.Process process = new System.Diagnostics.Process();
             System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
             startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
-            startInfo.FileName = "2dxConvert\\2dxWavConvert.exe";
+            startInfo.FileName = "tools\\2dxConvert\\2dxWavConvert.exe";
 
             string dest = src;
             FileInfo currentFile = new FileInfo(src);
@@ -423,6 +462,12 @@ namespace SongList
             return data["version"].PadLeft(3, '0') + "_" +
                     data["label"].PadLeft(4, '0') + "_" +
                     "pre";
+        }
+
+        public string BaseNameNum()
+        {
+            return data["version"].PadLeft(3, '0') + "_" +
+                    data["label"].PadLeft(4, '0');
         }
 
         private static string MakeAscii(string[] tokens)
@@ -501,6 +546,11 @@ namespace SongList
 
 		Dictionary<string, string> data = new Dictionary<string, string>();
         Dictionary<string, Dictionary<string, string>> chartData = new Dictionary<string, Dictionary<string, string>>();
+
+        // Image (Jacket)
+
+        //Dictionary<string, Tuple<Image, string>> images = new Dictionary<string, Tuple<Image, string>>();
+        Image image;
 
         //string songCachePath;
 

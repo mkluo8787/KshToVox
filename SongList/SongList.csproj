@@ -39,6 +39,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Chart.cs" />
+    <Compile Include="Image.cs" />
     <Compile Include="Song.cs" />
     <Compile Include="SongList.cs" />
   </ItemGroup>
@@ -51,6 +52,10 @@
     <ProjectReference Include="..\IfsParse\IfsParse.csproj">
       <Project>{f2adf342-a8bb-47e7-bd3d-534e39608b4e}</Project>
       <Name>IfsParse</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Utility\Utility.csproj">
+      <Project>{1fa8383b-d1a1-468d-a871-ab0570624044}</Project>
+      <Name>Utility</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

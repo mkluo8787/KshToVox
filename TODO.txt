@@ -20,20 +20,26 @@ Chart
 
 * Toolstrip: Close
 
-Fill in the infos.
-
 Vox versions handle.
 
 End Pos = Last Measure + 2
 
-sox/2dxConvert exe/dll pack
+sox/2dxConvert (tools) exe/dll pack
 
 selfmade & original chart grouping
 
-preview music
+Exceptions
 
-find list size
+    song length < 2:30
 
-no beat tag on legacy ksh chart
+Autoload: show loading info on cmd
 
-song length < 2:30
+Some more customization on kfc layout
+
+Autoload: choose to keep some original chart
+
+score record?
+
+ONLY supporting one jacket now.
+    multi-jackets may lead to a much more complicated chart replacement.
+    ( OR trim the difficulty to the same ? )

@@ -8,39 +8,38 @@ using System.IO;
 using System.Xml.Linq;
 
 using SongList;
+using Utility;
 
 namespace AutoLoad
 {
     static class Program
     {
-        //readonly static string kfcPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
-        readonly static string kfcPath = @"E:\CHIKAN\ks_to_SDVX\Minimal SDVX HH for FX testing\";
-        readonly public static string binPath = System.IO.Path.GetDirectoryName(
-            System.Reflection.Assembly.GetExecutingAssembly().Location
-            ) + "\\";
-        readonly public static string toolsPath = binPath + @"tools\";
-        readonly public static string cachePath = binPath + @"cache\";
-
         static void Main(string[] args)
         {
-            if (!File.Exists(kfcPath + "soundvoltex.dll"))
+            if (!File.Exists(Util.kfcPath + "soundvoltex.dll"))
                 throw new Exception("soundvoltex.dll not found! This should be executed in a KFC directory.");
 
-            if (Directory.Exists(cachePath))
-                Directory.Delete(cachePath, true);
-            Directory.CreateDirectory(cachePath);
+            ClearCache();
 
-            MetaInfo metaDb = new MetaInfo(kfcPath);
+            MetaInfo metaDb = new MetaInfo();
 
             SongList.SongList songList = new SongList.SongList();
 
-            songList.LoadFromKshSong(kfcPath, metaDb.IdToIfs(), metaDb.IdToVer(), metaDb.TypeAttr());
+            songList.LoadFromKshSong(Util.kfcPath, metaDb.IdToIfs(), metaDb.IdToVer(), metaDb.TypeAttr());
 
             songList.Save();
+
+            ClearCache();
+
             //songList.SaveTexture();
         }
 
-
+        static void ClearCache()
+        {
+            if (Directory.Exists(Util.cachePath))
+                Directory.Delete(Util.cachePath, true);
+            Directory.CreateDirectory(Util.cachePath);
+        }
     }
 
     class MetaInfo
@@ -49,9 +48,9 @@ namespace AutoLoad
         Dictionary<int, int> idToVer;
         Dictionary<string, string> typeAttr = new Dictionary<string, string>();
 
-        public MetaInfo(string kfcPath)
+        public MetaInfo()
         {
-            string mataDbPath = kfcPath + "\\data\\others\\meta_usedId.xml";
+            string mataDbPath = Util.kfcPath + "\\data\\others\\meta_usedId.xml";
 
             idToIfs = new Dictionary<int, int>();
             idToVer = new Dictionary<int, int>();
@@ -78,14 +77,16 @@ namespace AutoLoad
             {
                 // Parse Used Ids
 
-                string dbPath = kfcPath + "\\data\\others\\music_db.xml";
+                string dbPath = Util.kfcPath + "\\data\\others\\music_db.xml";
                 XElement root = XElement.Load(dbPath);
 
                 List<int> usedId = new List<int>();
 
                 foreach (XElement songXml in root.Elements("music"))
                 {
-                    usedId.Add(int.Parse(songXml.Attribute("id").Value));
+                    int id = int.Parse(songXml.Attribute("id").Value);
+                    if (id == 840) continue;
+                    usedId.Add(id);
                     idToVer[int.Parse(songXml.Attribute("id").Value)] =
                         int.Parse(songXml.Element("info").Element("version").Value);
                 }
@@ -102,7 +103,7 @@ namespace AutoLoad
 
                 // Parse jacket ifs Ids
 
-                string[] jacketIfsFiles = Directory.GetFiles(kfcPath + "\\data\\graphics\\", "s_jacket*.ifs");
+                string[] jacketIfsFiles = Directory.GetFiles(Util.kfcPath + "data\\graphics\\", "s_jacket*.ifs");
                 foreach (string s in jacketIfsFiles)
                 {
                     List<int> idList = ParseJacketIfsToIds(s);
@@ -137,56 +138,20 @@ namespace AutoLoad
 
         static List<int> ParseJacketIfsToIds(string ifsPath)
         {
-            FileInfo currentFile = new FileInfo(ifsPath);
-            string cachePath = Program.cachePath + currentFile.Name;
-            currentFile.CopyTo(cachePath);
-            FileInfo cacheFile = new FileInfo(cachePath);
 
-            string fileName = Path.GetFileNameWithoutExtension(cacheFile.Name);
+            string tgaPath = Util.IfsToTga(ifsPath);
 
             List<int> list = new List<int>();
-
-            
-            string dumpImgFSPath = cachePath;
-            string dumpImgFSOutPath = Program.binPath + fileName + "_imgfs\\";
-            string dumpImgFSOutPath2 = Program.cachePath + fileName + "_imgfs\\";
-
-            Execute(Program.toolsPath + "dumpImgFS.exe", dumpImgFSPath);
-
-            DirectoryInfo currentDirectory = new DirectoryInfo(dumpImgFSOutPath);
-            currentDirectory.MoveTo(dumpImgFSOutPath2);
-
-            string tex2tgaPath = Program.cachePath + fileName + "_imgfs\\tex\\texturelist.xml";
-            string tex2tgaOutPath = Program.binPath + fileName + "_imgfs_tex\\";
-            string tex2tgaOutPath2 = Program.cachePath + fileName + "_imgfs_tex\\";
-
-            Execute(Program.toolsPath + "tex2tga.exe", tex2tgaPath);
-
-            DirectoryInfo currentDirectory2 = new DirectoryInfo(tex2tgaOutPath);
-            currentDirectory2.MoveTo(tex2tgaOutPath2);
-
-            string tgaPath = tex2tgaOutPath2 + "tex000\\";
 
             foreach (string file in Directory.GetFiles(tgaPath, "jk_*_*_*.tga"))
             {
                 string[] tokens = file.Split('_');
-                list.Add(int.Parse(tokens[tokens.Length - 2]));
+                if ((tokens[tokens.Length - 1] == "1.tga") &&
+                    (tokens[tokens.Length - 2] != "0840"))
+                    list.Add(int.Parse(tokens[tokens.Length - 2]));
             }
 
             return list;
-        }
-
-        static void Execute(string exe, string arg)
-        {
-            System.Diagnostics.Process process = new System.Diagnostics.Process();
-            System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
-            startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
-            startInfo.FileName = exe;
-            startInfo.Arguments = arg;
-
-            process.StartInfo = startInfo;
-            process.Start();
-            process.WaitForExit();
         }
 
         public Dictionary<int, int> IdToIfs() { return idToIfs; }
