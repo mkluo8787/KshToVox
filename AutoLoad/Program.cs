@@ -39,9 +39,9 @@ namespace AutoLoad
 
             ClearCache();
 
-            Util.ConsoleWrite("Saving texture...");
+            //Util.ConsoleWrite("Saving texture...");
 
-            songList.SaveTexture();
+            //songList.SaveTexture();
 
             Util.ConsoleWrite("\nLoading Done. Press any key to proceed...");
             Console.ReadKey();

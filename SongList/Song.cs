@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Text.RegularExpressions;
 
+using NAudio.Wave;
+
 using Utility;
 
 namespace SongList
@@ -128,6 +130,22 @@ namespace SongList
 
                     string outSoundPath = SongList.cachePath + BaseName() + Suffix(SongList.DIFS[id]) + ".wav";
                     string preSoundPath = SongList.cachePath + BaseName() + Suffix(SongList.DIFS[id]) + "_p.wav";
+
+                    // SOX BUG: the mp3 to wav conversion seems to ignore the implicit offset in mp3.
+                    // so here we do a conversion first with 
+                    if (ext == ".mp3")
+                    {
+                        using (Mp3FileReader mp3 = new Mp3FileReader(soundPath))
+                        {
+                            using (WaveStream pcm = WaveFormatConversionStream.CreatePcmStream(mp3))
+                            {
+                                soundPath = soundPath.Substring(0, soundPath.Length - 4) + ".wav";
+                                WaveFileWriter.CreateWaveFile(soundPath, pcm);
+                            }
+                        }
+                    }
+
+                    
 
                     if (shift)
                         ConvertAndTrimToWav(soundPath, outSoundPath, int.Parse(kshParse["o"]) - Convert.ToInt32(offset * 1000), -1);
