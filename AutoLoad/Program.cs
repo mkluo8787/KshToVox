@@ -17,7 +17,7 @@ namespace AutoLoad
         static void Main(string[] args)
         {
             if (!File.Exists(Util.kfcPath + "soundvoltex.dll"))
-                throw new Exception("soundvoltex.dll not found! This should be executed in a KFC directory.");
+                throw new Exception("soundvoltex.dll not found! This should be executed within a KFC directory.");
 
             ClearCache();
 

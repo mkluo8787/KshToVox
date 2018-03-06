@@ -47,3 +47,7 @@ ONLY supporting one jacket now.
 Installation?
 
 Cache mechanic design (now using a naive method) 
+
+Bug: Image convert cause ifs broken (Koakuma jpg)
+
+Bug: Offset (2 minute fighters form Wang)

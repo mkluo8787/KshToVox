@@ -28,13 +28,14 @@ namespace SongList
             string fName = Path.GetFileNameWithoutExtension(path);
             string dName = fi.DirectoryName;
             string tgacache = dName + "\\" + fName + ".tga" + pixel.ToString();
+            /*
             if (File.Exists(tgacache))
             {
                 FileInfo cacheFi = new FileInfo(tgacache);
                 cacheFi.MoveTo(outputPath);
                 return;
             }
-
+            */
             string name = Util.cachePath + Util.RandomString(20);
 
             // Image to Png (from bmp or jpg)
@@ -51,7 +52,7 @@ namespace SongList
 
             Util.Execute("tools\\png2tga.exe", "-i \"" + name + ".png" + "\" -o \"" + Util.cachePath + "\"");
             FileInfo fiOri = new FileInfo(name + ".tga");
-            fiOri.CopyTo(tgacache);
+            //fiOri.CopyTo(tgacache);
             fiOri.MoveTo(outputPath);
 
             // dummy
