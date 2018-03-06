@@ -12,12 +12,23 @@ namespace Utility
     public static class Util
     {
         //readonly public static string kfcPath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "\\";
-        readonly public static string kfcPath = @"E:\CHIKAN\ks_to_SDVX\Minimal SDVX HH for FX testing\";
         readonly public static string binPath = System.IO.Path.GetDirectoryName(
             System.Reflection.Assembly.GetExecutingAssembly().Location
             ) + "\\";
+        public static string kfcPath = binPath; // Default KFC path.
         readonly public static string toolsPath = binPath + @"tools\";
         readonly public static string cachePath = binPath + @"cache\";
+
+        public static void setKfcPath(string newPath)
+        {
+            if (!Directory.Exists(newPath))
+                throw new Exception("The path specified does not exist!");
+
+            if (newPath[newPath.Length - 1] != '\\')
+                newPath += "\\";
+
+            kfcPath = newPath;
+        }
 
         public static void Execute(string exe, string arg)
         {

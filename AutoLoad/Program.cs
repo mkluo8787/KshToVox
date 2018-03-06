@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Xml.Linq;
 
+using NDesk.Options;
+
 using SongList;
 using Utility;
 
@@ -16,8 +18,32 @@ namespace AutoLoad
     {
         static void Main(string[] args)
         {
+            bool skipTextures = false;
+            bool forceRaload = false;
+
+            OptionSet p = new OptionSet() {
+                { "p|path=", "The {PATH} of KFC directory.",
+                   v => Util.setKfcPath(v) },
+                { "nt|no-texture",  "Skip the texture replacement (which takes a long time).",
+                   v => skipTextures = v != null },
+                { "f|force-reload",  "Force reload meta DB and all songs.",
+                   v => forceRaload = v != null }
+            };
+
+            List<string> extra;
+            try
+            {
+                extra = p.Parse(args);
+            }
+            catch (OptionException e)
+            {
+                Console.Write("AutoLoad: ");
+                Console.WriteLine(e.Message);
+                return;
+            }
+
             if (!File.Exists(Util.kfcPath + "soundvoltex.dll"))
-                throw new Exception("soundvoltex.dll not found! This should be executed within a KFC directory.");
+                throw new Exception("soundvoltex.dll not found! Please.");
 
             ClearCache();
 
@@ -39,10 +65,12 @@ namespace AutoLoad
 
             ClearCache();
 
-            //Util.ConsoleWrite("Saving texture...");
+            if (!skipTextures)
+            {
+                //Util.ConsoleWrite("Saving texture...");
 
-            //songList.SaveTexture();
-
+                //songList.SaveTexture();
+            }
             Util.ConsoleWrite("\nLoading Done. Press any key to proceed...");
             Console.ReadKey();
         }
