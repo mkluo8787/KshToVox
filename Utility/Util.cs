@@ -11,13 +11,37 @@ namespace Utility
 {
     public static class Util
     {
-        //readonly public static string kfcPath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "\\";
         readonly public static string binPath = System.IO.Path.GetDirectoryName(
             System.Reflection.Assembly.GetExecutingAssembly().Location
             ) + "\\";
         public static string kfcPath = binPath; // Default KFC path.
         readonly public static string toolsPath = binPath + @"tools\";
         readonly public static string cachePath = binPath + @"cache\";
+
+        public static void ClearCache()
+        {
+            if (Directory.Exists(Util.cachePath))
+                Directory.Delete(Util.cachePath, true);
+            Directory.CreateDirectory(Util.cachePath);
+        }
+
+        public static void DbBackup()
+        {
+            FileInfo musicDbFile = new FileInfo(Util.kfcPath + "\\data\\others\\music_db.xml");
+            FileInfo metaDbFile = new FileInfo(Util.kfcPath + "\\data\\others\\meta_usedId.xml");
+            musicDbFile.CopyTo(Util.cachePath + "music_db.xml");
+            metaDbFile.CopyTo(Util.cachePath + "meta_usedId.xml");
+        }
+
+        public static void DbRestore()
+        {
+            FileInfo musicDbFile = new FileInfo(Util.cachePath + "music_db.xml");
+            FileInfo metaDbFile = new FileInfo(Util.cachePath + "meta_usedId.xml");
+            File.Delete(Util.kfcPath + "\\data\\others\\music_db.xml");
+            File.Delete(Util.kfcPath + "\\data\\others\\meta_usedId.xml");
+            musicDbFile.CopyTo(Util.kfcPath + "\\data\\others\\music_db.xml");
+            metaDbFile.CopyTo(Util.kfcPath + "\\data\\others\\meta_usedId.xml");
+        }
 
         public static void setKfcPath(string newPath)
         {
@@ -30,7 +54,7 @@ namespace Utility
             kfcPath = newPath;
         }
 
-        public static void Execute(string exe, string arg)
+        public static void Execute(string exe, string arg, string directory = "")
         {
             System.Diagnostics.Process process = new System.Diagnostics.Process();
             System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
@@ -39,6 +63,9 @@ namespace Utility
             startInfo.Arguments = arg;
             //startInfo.UseShellExecute = false;
             //startInfo.RedirectStandardOutput = true;
+
+            if (directory != "")
+                startInfo.WorkingDirectory = directory;
 
             process.StartInfo = startInfo;
             process.Start();
@@ -67,24 +94,16 @@ namespace Utility
             string fileName = Path.GetFileNameWithoutExtension(cacheFileInfo.Name);
 
             string dumpImgFSPath = cacheFile;
-            string dumpImgFSOutPath = binPath + fileName + "_imgfs\\";
-            string dumpImgFSOutPath2 = cachePath + fileName + "_imgfs\\";
+            string dumpImgFSOutPath = cachePath + fileName + "_imgfs\\";
 
-            Util.Execute(toolsPath + "dumpImgFS.exe", "\"" + dumpImgFSPath + "\"");
+            Execute(toolsPath + "dumpImgFS.exe", "\"" + dumpImgFSPath + "\"", cachePath);
 
-            DirectoryInfo currentDirectory = new DirectoryInfo(dumpImgFSOutPath);
-            currentDirectory.MoveTo(dumpImgFSOutPath2);
+            string tex2tgaPath = cachePath + fileName + "_imgfs\\tex\\texturelist.xml";
+            string tex2tgaOutPath = cachePath + fileName + "_imgfs_tex\\";
 
-            string tex2tgaPath = Util.cachePath + fileName + "_imgfs\\tex\\texturelist.xml";
-            string tex2tgaOutPath = Util.binPath + fileName + "_imgfs_tex\\";
-            string tex2tgaOutPath2 = Util.cachePath + fileName + "_imgfs_tex\\";
+            Execute(toolsPath + "tex2tga.exe", "\"" + tex2tgaPath + "\"", cachePath);
 
-            Util.Execute(Util.toolsPath + "tex2tga.exe", "\"" + tex2tgaPath + "\"");
-
-            DirectoryInfo currentDirectory2 = new DirectoryInfo(tex2tgaOutPath);
-            currentDirectory2.MoveTo(tex2tgaOutPath2);
-
-            return tex2tgaOutPath2 + "tex000\\";
+            return tex2tgaOutPath + "tex000\\";
         }
 
         public static string IfsToTex(string ifsPath)
@@ -97,47 +116,30 @@ namespace Utility
             string fileName = Path.GetFileNameWithoutExtension(cacheFileInfo.Name);
 
             string dumpImgFSPath = cacheFile;
-            string dumpImgFSOutPath = binPath + fileName + "_imgfs\\";
-            string dumpImgFSOutPath2 = cachePath + fileName + "_imgfs\\";
+            string dumpImgFSOutPath = cachePath + fileName + "_imgfs\\";
 
-            Util.Execute(toolsPath + "dumpImgFS.exe", "\"" + dumpImgFSPath + "\"");
+            Execute(toolsPath + "dumpImgFS.exe", "\"" + dumpImgFSPath + "\"", cachePath);
 
-            DirectoryInfo currentDirectory = new DirectoryInfo(dumpImgFSOutPath);
-            currentDirectory.MoveTo(dumpImgFSOutPath2);
-
-            return dumpImgFSOutPath2;
+            return dumpImgFSOutPath;
         }
 
         public static void TexToIfs(string texPath, string ifsPath)
         {
             string buildImgFSPath = texPath;
-            Util.Execute(toolsPath + "buildImgFS.exe", "\"" + buildImgFSPath.Remove(buildImgFSPath.Length - 1) + "\"" + " tex");
+            Util.Execute(toolsPath + "buildImgFS.exe", "\"" + buildImgFSPath.Remove(buildImgFSPath.Length - 1) + "\"" + " tex", cachePath);
 
             string temp = texPath.Remove(texPath.Length - 1) + ".ifs";
             string fileName = Path.GetFileNameWithoutExtension(temp);
-            string outFileName = binPath + fileName + ".ifs";
+            string outFileName = cachePath + fileName + ".ifs";
 
             FileInfo cacheFile = new FileInfo(outFileName);
             File.Delete(ifsPath);
             cacheFile.MoveTo(ifsPath);
         }
 
-        public static void TgaToTex(string tgaPath, string texPath)
+        public static void TgaToTex_Thread(string tgaPath, string texPath)
         {
-            DirectoryInfo di = new DirectoryInfo(binPath);
-            foreach (FileInfo fi in di.GetFiles())
-                if (!fi.Name.Contains("."))
-                    throw new Exception("File with no extension within bin path!");
-
-            Util.Execute(toolsPath + "tga2tex.exe", "\"" + tgaPath + "\"");
-            string fName = "";
-            foreach (FileInfo fi in di.GetFiles())
-                if (!fi.Name.Contains("."))
-                    fName = fi.FullName;
-
-            FileInfo hashFile = new FileInfo(fName);
-            File.Delete(texPath + hashFile.Name);
-            hashFile.MoveTo(texPath + hashFile.Name);               
+            Util.Execute(toolsPath + "tga2tex.exe", "\"" + tgaPath + "\"", texPath);
         }
 
         private static Random random = new Random();
@@ -147,6 +149,13 @@ namespace Utility
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
             return new string(Enumerable.Repeat(chars, length)
               .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
+
+        public static string IfsPathToTexPath(string ifsPath)
+        {
+            string fileName = Path.GetFileNameWithoutExtension(ifsPath);
+            string dumpImgFSOutPath2 = cachePath + fileName + "_imgfs\\";
+            return dumpImgFSOutPath2;
         }
     }
 }

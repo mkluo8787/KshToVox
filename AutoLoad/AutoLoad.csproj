@@ -51,14 +51,30 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
-    <None Include="tools\dummy202.tga" />
-    <None Include="tools\dummy452.tga" />
-    <None Include="tools\dummy74.tga" />
-    <None Include="tools\sox\batch-example.bat" />
-    <None Include="tools\sox\sox.pdf" />
-    <None Include="tools\sox\soxformat.pdf" />
-    <None Include="tools\sox\soxi.pdf" />
-    <None Include="tools\sox\wget.ini" />
+    <None Include="tools\dummy202.tga">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="tools\dummy452.tga">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="tools\dummy74.tga">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="tools\sox\batch-example.bat">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="tools\sox\sox.pdf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="tools\sox\soxformat.pdf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="tools\sox\soxi.pdf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="tools\sox\wget.ini">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SongList\SongList.csproj">
@@ -71,56 +87,156 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="tools\2dxConvert\2dxBuild.exe" />
-    <Content Include="tools\2dxConvert\2dxDump.exe" />
-    <Content Include="tools\2dxConvert\2dxMerge.exe" />
-    <Content Include="tools\2dxConvert\2dxWavConvert.exe" />
-    <Content Include="tools\2dxConvert\libflac-8.dll" />
-    <Content Include="tools\2dxConvert\libgcc_s_sjlj-1.dll" />
-    <Content Include="tools\2dxConvert\libgomp-1.dll" />
-    <Content Include="tools\2dxConvert\libid3tag-0.dll" />
-    <Content Include="tools\2dxConvert\libmad-0.dll" />
-    <Content Include="tools\2dxConvert\libmp3lame-0.dll" />
-    <Content Include="tools\2dxConvert\libogg-0.dll" />
-    <Content Include="tools\2dxConvert\libpng16-16.dll" />
-    <Content Include="tools\2dxConvert\libsox-3.dll" />
-    <Content Include="tools\2dxConvert\libssp-0.dll" />
-    <Content Include="tools\2dxConvert\libvorbis-0.dll" />
-    <Content Include="tools\2dxConvert\libvorbisenc-2.dll" />
-    <Content Include="tools\2dxConvert\libvorbisfile-3.dll" />
-    <Content Include="tools\2dxConvert\libwavpack-1.dll" />
-    <Content Include="tools\2dxConvert\libwinpthread-1.dll" />
-    <Content Include="tools\2dxConvert\pre.wav" />
-    <Content Include="tools\2dxConvert\zlib1.dll" />
-    <Content Include="tools\buildImgFS.exe" />
-    <Content Include="tools\dumpImgFS.exe" />
-    <Content Include="tools\FreeImage.dll" />
-    <Content Include="tools\png2tga.exe" />
-    <Content Include="tools\sox\ChangeLog.txt" />
-    <Content Include="tools\sox\libflac-8.dll" />
-    <Content Include="tools\sox\libgcc_s_sjlj-1.dll" />
-    <Content Include="tools\sox\libgomp-1.dll" />
-    <Content Include="tools\sox\libid3tag-0.dll" />
-    <Content Include="tools\sox\libmad-0.dll" />
-    <Content Include="tools\sox\libmp3lame-0.dll" />
-    <Content Include="tools\sox\libogg-0.dll" />
-    <Content Include="tools\sox\libpng16-16.dll" />
-    <Content Include="tools\sox\libsox-3.dll" />
-    <Content Include="tools\sox\libssp-0.dll" />
-    <Content Include="tools\sox\libvorbis-0.dll" />
-    <Content Include="tools\sox\libvorbisenc-2.dll" />
-    <Content Include="tools\sox\libvorbisfile-3.dll" />
-    <Content Include="tools\sox\libwavpack-1.dll" />
-    <Content Include="tools\sox\libwinpthread-1.dll" />
-    <Content Include="tools\sox\LICENSE.GPL.txt" />
-    <Content Include="tools\sox\README.txt" />
-    <Content Include="tools\sox\README.win32.txt" />
-    <Content Include="tools\sox\sox.exe" />
-    <Content Include="tools\sox\Uninstall sox-14.4.2.exe" />
-    <Content Include="tools\sox\wget.exe" />
-    <Content Include="tools\sox\zlib1.dll" />
-    <Content Include="tools\tex2tga.exe" />
-    <Content Include="tools\tga2tex.exe" />
+    <Content Include="tools\2dxConvert\2dxBuild.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\2dxConvert\2dxDump.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\2dxConvert\2dxMerge.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\2dxConvert\2dxWavConvert.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\2dxConvert\libflac-8.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\2dxConvert\libgcc_s_sjlj-1.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\2dxConvert\libgomp-1.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\2dxConvert\libid3tag-0.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\2dxConvert\libmad-0.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\2dxConvert\libmp3lame-0.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\2dxConvert\libogg-0.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\2dxConvert\libpng16-16.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\2dxConvert\libsox-3.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\2dxConvert\libssp-0.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\2dxConvert\libvorbis-0.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\2dxConvert\libvorbisenc-2.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\2dxConvert\libvorbisfile-3.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\2dxConvert\libwavpack-1.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\2dxConvert\libwinpthread-1.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\2dxConvert\pre.wav">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\2dxConvert\zlib1.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\buildImgFS.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\dumpImgFS.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\FreeImage.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\png2tga.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\sox\ChangeLog.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\sox\libflac-8.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\sox\libgcc_s_sjlj-1.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\sox\libgomp-1.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\sox\libid3tag-0.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\sox\libmad-0.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\sox\libmp3lame-0.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\sox\libogg-0.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\sox\libpng16-16.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\sox\libsox-3.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\sox\libssp-0.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\sox\libvorbis-0.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\sox\libvorbisenc-2.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\sox\libvorbisfile-3.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\sox\libwavpack-1.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\sox\libwinpthread-1.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\sox\LICENSE.GPL.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\sox\README.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\sox\README.win32.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\sox\sox.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\sox\Uninstall sox-14.4.2.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\sox\wget.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\sox\zlib1.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\tex2tga.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\tga2tex.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

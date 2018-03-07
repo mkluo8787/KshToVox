@@ -18,6 +18,8 @@ namespace AutoLoad
     {
         static void Main(string[] args)
         {
+            // Arguments
+
             bool skipTextures = false;
             bool forceRaload = false;
 
@@ -42,49 +44,100 @@ namespace AutoLoad
                 return;
             }
 
-            if (!File.Exists(Util.kfcPath + "soundvoltex.dll"))
-                throw new Exception("soundvoltex.dll not found! Please.");
+            // Welcome message
 
-            ClearCache();
+            Util.ConsoleWrite(@"
+  _  __    _  _________      __       
+ | |/ /   | ||__   __\ \    / /       
+ | ' / ___| |__ | | __\ \  / /____  __
+ |  < / __| '_ \| |/ _ \ \/ / _ \ \/ /
+ | . \\__ \ | | | | (_) \  / (_) >  <  March 2018. Alpha version
+ |_|\_\___/_| |_|_|\___/ \/ \___/_/\_\ Author: Iced & MKLUO
+
+");
+
+            // Check if kfc dll exists.
+            if (!File.Exists(Util.kfcPath + "soundvoltex.dll"))
+            {
+                Console.WriteLine("soundvoltex.dll not found! Please choose a valid KFC path.");
+                return;
+            }
+
+            Util.ClearCache();
+
+            // DB backup (for later restore)
+            Util.DbBackup();
+
+            if (forceRaload)
+                File.Delete(Util.kfcPath + "data\\others\\meta_usedId.xml");
+
+            Util.ClearCache();
 
             MetaInfo metaDb = new MetaInfo();
 
             SongList.SongList songList = new SongList.SongList();
 
-            Util.ConsoleWrite("Loading form KshSongs...");
+            Util.ConsoleWrite("Loading from KshSongs...");
 
-            songList.LoadFromKshSong(   Util.kfcPath, 
-                                        metaDb.IdToIfs(), 
-                                        metaDb.IdToVer(), 
-                                        metaDb.TypeAttr(),
-                                        metaDb.FirstLoad());
+            try
+            {
+                songList.LoadFromKshSong(Util.kfcPath,
+                                            metaDb.IdToIfs(),
+                                            metaDb.IdToVer(),
+                                            metaDb.TypeAttr(),
+                                            metaDb.FirstLoad());
+            }
+            catch (Exception e)
+            {
+                Util.ConsoleWrite("*** Exception encountered while loading from KshSongs. ***");
+                Util.ConsoleWrite(e.Message);
+
+                Util.DbRestore();
+
+                return;
+            }
 
             Util.ConsoleWrite("Saving song...");
 
-            songList.Save();
+            try
+            {
+                // The KFC data could be corrupted here even if the exceptions are caught,
+                // so the music_db and metaDb should be removed before abort.
+                songList.Save();
+            }
+            catch (Exception e)
+            {
+                Util.ConsoleWrite("*** Exception encountered while saving ***");
+                Util.ConsoleWrite(e.Message);
 
-            ClearCache();
+                File.Delete(Util.kfcPath + "\\data\\others\\music_db.xml");
+                File.Delete(Util.kfcPath + "\\data\\others\\meta_usedId.xml");
+
+                return;
+            }
+
+            Util.ClearCache();
 
             if (!skipTextures)
             {
-                //Util.ConsoleWrite("Saving texture...");
+                Util.ConsoleWrite("Saving texture... (This should took a while)");
 
-                //songList.SaveTexture();
+                try
+                {
+                    // Chart data should be fine regardless of the result of SaveTexture.
+                    // No need to erase the DBs in exceptions.
+                    songList.SaveTexture();
+                }
+                catch (Exception e)
+                {
+                    Util.ConsoleWrite("*** Exception encountered while saving texture ***");
+                    Util.ConsoleWrite(e.Message);
+                    Util.ConsoleWrite("The charts will still be saved. (Without the custom jackets)");
+                }
             }
+
             Util.ConsoleWrite("\nLoading Done. Press any key to proceed...");
             Console.ReadKey();
-        }
-
-        static void ClearCache()
-        {
-            if (Directory.Exists(Util.cachePath))
-                Directory.Delete(Util.cachePath, true);
-            Directory.CreateDirectory(Util.cachePath);
-
-            DirectoryInfo di = new DirectoryInfo(Util.binPath);
-            foreach (FileInfo fi in di.GetFiles())
-                if (!fi.Name.Contains("."))
-                    File.Delete(fi.FullName);
         }
     }
 
@@ -98,7 +151,7 @@ namespace AutoLoad
 
         public MetaInfo()
         {
-            string mataDbPath = Util.kfcPath + "\\data\\others\\meta_usedId.xml";
+            string mataDbPath = Util.kfcPath + "data\\others\\meta_usedId.xml";
 
             idToIfs = new Dictionary<int, int>();
             idToVer = new Dictionary<int, int>();
@@ -125,14 +178,22 @@ namespace AutoLoad
             }
             else
             {
-                Util.ConsoleWrite("Meta DB not found. Parsing from original KFC data...");
+                Util.ConsoleWrite("Parsing from original KFC data...");
 
                 firstLoad = true;
 
                 // Parse Used Ids
 
                 string dbPath = Util.kfcPath + "\\data\\others\\music_db.xml";
-                XElement root = XElement.Load(dbPath);
+                string dbOriPath = Util.kfcPath + "\\data\\others\\music_db_original.xml";
+               
+                if (!File.Exists(dbOriPath))
+                {
+                    FileInfo fi = new FileInfo(dbPath);
+                    fi.MoveTo(dbOriPath);
+                }
+
+                XElement root = XElement.Load(dbOriPath);
 
                 List<int> usedId = new List<int>();
 
@@ -213,6 +274,8 @@ namespace AutoLoad
         public Dictionary<string, string> TypeAttr() { return typeAttr; }
 
         public bool FirstLoad() { return firstLoad;  }
+
+        
 
         //public int IfsId(int id) { return idToIfs[id]; }
         //public bool ContainsId(int id) { return idToIfs.ContainsKey(id); }

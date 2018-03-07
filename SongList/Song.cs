@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using System.IO;
+using System.Threading;
 using System.Text.RegularExpressions;
 
 using NAudio.Wave;
@@ -144,8 +145,6 @@ namespace SongList
                             }
                         }
                     }
-
-                    
 
                     if (shift)
                         ConvertAndTrimToWav(soundPath, outSoundPath, int.Parse(kshParse["o"]) - Convert.ToInt32(offset * 1000), -1);
@@ -366,9 +365,9 @@ namespace SongList
             }
         }
 
-        public void ImageToTex(string tgaName, string texPath, int pixel)
+        public Task ImageToTex(string tgaName, string texPath, int pixel)
         {
-            Util.ConsoleWrite("Replacing " + image.Name() + " info " + tgaName + "... (It should took a while)");
+            Util.ConsoleWrite("Replacing " + image.Name() + " into " + tgaName + "...");
 
             // Image to tga (in cache)
             string tgaPath = Util.cachePath + tgaName;
@@ -376,7 +375,9 @@ namespace SongList
             image.ToTga(tgaPath, pixel);
 
             // tga to tex
-            Util.TgaToTex(tgaPath, texPath);
+            Task task = Task.Run(() => Util.TgaToTex_Thread(tgaPath, texPath));
+
+            return task;
         }
 
         private static void ConvertAndTrimToWav(string src, string dest, int trimMs, int duraMs)
@@ -386,7 +387,7 @@ namespace SongList
 
             double duraSec = 10.30;
 
-            string soxExe = "tools\\sox\\sox.exe";
+            string soxExe = Util.toolsPath + "sox\\sox.exe";
 
             if (duraMs < 0)
             {
@@ -415,7 +416,7 @@ namespace SongList
             string source = currentFile.Directory.FullName + "\\" + Util.RandomString(20) + currentFile.Extension;
             currentFile.MoveTo(source);
 
-            string soxExe = "tools\\sox\\sox.exe";
+            string soxExe = Util.toolsPath + "sox\\sox.exe";
 
             Util.Execute(soxExe, "-G -q \"" + source + "\" \"" + dest + "\" fade q 2 0 2");
         }
@@ -427,7 +428,7 @@ namespace SongList
             string source = currentFile.Directory.FullName + "\\" + Util.RandomString(20) + currentFile.Extension;
             currentFile.MoveTo(source);
 
-            string convertExe = "tools\\2dxConvert\\2dxWavConvert.exe";
+            string convertExe = Util.toolsPath + "2dxConvert\\2dxWavConvert.exe";
 
             Util.Execute(convertExe, "\"" + source + "\" \"" + dest + "\" preview");
         }

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using System.IO;
+using System.Threading;
 using System.Xml.Linq;
 
 using IfsParse;
@@ -23,11 +24,17 @@ namespace SongList
         private readonly static int listSize = 1061;
 		public readonly static string[] DIFS = { "novice", "advanced", "exhaust", "infinite" };
 
-		public SongList()
+        private Object songsLock = new Object();
+
+        public SongList()
 		{
             songs = new Song[listSize];
+            songsIdOccupied = new bool[listSize];
             for (int id = 0; id < listSize; ++id)
+            {
                 songs[id] = new Song();
+                songsIdOccupied[id] = false;
+            }
             Directory.CreateDirectory(cachePath);
 		}
 
@@ -91,6 +98,7 @@ namespace SongList
 
 				Song song = new Song(data, chartData, kfcPath, true);
 				songs[id] = song;
+                songsIdOccupied[id] = true;
 
                 // Caching imformation
                 if (data["custom"] == "1")
@@ -147,6 +155,8 @@ namespace SongList
                 }
             }
 
+            List<Task> tasks = new List<Task>();
+
             foreach (DirectoryInfo kshSong in kshFolder.GetDirectories())
             {
                 if (kshPathToId.ContainsKey(kshSong.FullName)) // cache hit!
@@ -166,16 +176,36 @@ namespace SongList
 
                 int newId = -1;
                 foreach (KeyValuePair<int, int> idPair in idToIfs)
-                    if ((songs[idPair.Key].IsDummy()) && (idPair.Key >= 256))
+                    if ((!songsIdOccupied[idPair.Key]) && (idPair.Key >= 256))
+                    {
+                        songsIdOccupied[idPair.Key] = true;
                         newId = idPair.Key;
+                        break;
+                    }
+
                             
 
                 if (newId == -1) throw new Exception("Song DB Full!");
 
-                AddKshSong(kshSong.FullName, newId, idToVer[newId]);
+                Util.ConsoleWrite("Load Ksh Song: " + kshSong.Name);
 
-                Util.ConsoleWrite("Song: " + songs[newId].Data("title_name") + " Ksh data loaded.");
+                Task task = Task.Run(() => AddKshSong_Task(kshSong.FullName, newId, idToVer[newId]));
+                tasks.Add(task);
             }
+
+            foreach (Task task in tasks)
+                try
+                {
+                    task.Wait();
+                }
+                catch (AggregateException ae)
+                {
+                    foreach (var e in ae.InnerExceptions)
+                    {
+                        Util.ConsoleWrite("*** Exception encountered while adding new song ***");
+                        Util.ConsoleWrite(e.Message);
+                    }
+                }
 
             loaded = true;
         }
@@ -186,28 +216,15 @@ namespace SongList
                 songs[i] = new Song();
         }
 
-		public int AddKshSong(string path, int startId = 0, int ver = 4)
+		public void AddKshSong_Task(string path, int newId, int ver = 4)
 		{
-            int newId = 0;
-            if (startId == 0)
+            Song newSong = new Song(newId.ToString(), path, ver);
+
+            lock (songsLock)
             {
-                foreach (int id in Enumerable.Range(Math.Max(256, startId), listSize))
-                {
-                    if (songs[id].IsDummy())
-                    {
-                        newId = id;
-                        break;
-                    }
-                }
-                if (newId == 0) throw new Exception("Song list is full!");
+                songs[newId] = newSong;
             }
-            else
-                newId = startId;
-
-            songs[newId] = new Song(newId.ToString(), path, ver);
-
-			return newId;
-		}
+        }
 
 		public bool DeleteId(int id)
 		{
@@ -223,9 +240,21 @@ namespace SongList
 		// To KFC
 		public void Save()
 		{
-			string dbPath = kfcPath + "\\data\\others\\music_db.xml";
+            // Write .vox and 2dx
+            for (int id = 0; id < listSize; ++id)
+            {
+                Song song = songs[id];
+                if (song.IsDummy()) continue;
 
-			XElement root = new XElement("mdb");
+                if (!IsUnmoddedCustom(id))
+                    song.Save(kfcPath);
+            }
+
+            // Write to db
+
+            string dbPath = kfcPath + "\\data\\others\\music_db.xml";
+
+            XElement root = new XElement("mdb");
             XDocument xmlFile = new XDocument(
                 new XDeclaration("1.0", "shift-jis", "yes"),
                 root
@@ -233,17 +262,10 @@ namespace SongList
 
             for (int id = 0; id < listSize; ++id)
             {
-				Song song	= songs[id];
-
+                Song song = songs[id];
                 if (song.IsDummy()) continue;
 
-                // Write .vox and 2dx
-                if (!IsUnmoddedCustom(id))
-                    song.Save(kfcPath);
-
-                // Write to db
                 XElement music = new XElement("music", new XAttribute("id", id));
-
 				XElement info = new XElement("info");
 
                 foreach (KeyValuePair<string, string> d in song.Dict())
@@ -304,6 +326,8 @@ namespace SongList
                 texPaths[ifsId] = Util.IfsToTex(ifsPath);
             }
 
+            List<Task> tasks = new List<Task>();
+
             for (int id = 0; id < listSize; ++id)
             {
                 Song song = songs[id];
@@ -312,8 +336,12 @@ namespace SongList
 
                 string texPath = texPaths[idToIfs[id]];
 
-                song.ImageToTex("jk_" + song.BaseNameNum() + "_1.tga", texPath + "tex\\", 202);
+                tasks.Add(song.ImageToTex("jk_" + song.BaseNameNum() + "_1.tga", texPath + "tex\\", 202));
             }
+
+            // Tex conversion threads sync.
+            foreach (Task task in tasks)
+                task.Wait();
 
             foreach (int ifsId in targetIfs)
             {
@@ -327,14 +355,16 @@ namespace SongList
             }
 
             // jk_b and jk_s
-            
+
+            tasks = new List<Task>();
+
             for (int id = 0; id < listSize; ++id)
             {
                 Song song = songs[id];
                 if (song.IsDummy()) continue;
                 if (IsUnmoddedCustom(id)) continue;
 
-                string[] sufs = {"_b", "_s"};
+                string[] sufs = { "_b", "_s" };
                 foreach (string suf in sufs)
                 {
                     string ifsPath = Util.kfcPath + "data\\graphics\\jk\\jk_" + song.BaseNameNum() + "_1" + suf + ".ifs";
@@ -344,16 +374,33 @@ namespace SongList
                     string tgaName = "jk_" + song.BaseNameNum() + "_1" + suf + ".tga";
 
                     if (suf == "_b")
-                        song.ImageToTex(tgaName, texPath + "tex\\", 452);
+                        tasks.Add(song.ImageToTex(tgaName, texPath + "tex\\", 452));
                     else if (suf == "_s")
-                        song.ImageToTex(tgaName, texPath + "tex\\", 74);
+                        tasks.Add(song.ImageToTex(tgaName, texPath + "tex\\", 74));
                     else
                         throw new Exception();
+                }
+            }
+
+            // Tex conversion threads sync.
+            foreach (Task task in tasks)
+                task.Wait();
+
+            for (int id = 0; id < listSize; ++id)
+            {
+                Song song = songs[id];
+                if (song.IsDummy()) continue;
+                if (IsUnmoddedCustom(id)) continue;
+
+                string[] sufs = { "_b", "_s" };
+                foreach (string suf in sufs)
+                {
+                    string ifsPath = Util.kfcPath + "data\\graphics\\jk\\jk_" + song.BaseNameNum() + "_1" + suf + ".ifs";
+                    string texPath = Util.IfsPathToTexPath(ifsPath);
 
                     Util.TexToIfs(texPath, ifsPath);
                 }
             }
-            
         }
 
 		// Utils
@@ -391,9 +438,9 @@ namespace SongList
 
         // Datas
 
-        //private List<Song> songs = new List<Song>(listSize);
-        private Song[] songs;
-		private string kfcPath;
+        private volatile Song[] songs;
+        private bool[] songsIdOccupied;
+        private string kfcPath;
 		private bool loaded = false;
 
         private Dictionary<string, string> typeAttr = new Dictionary<string, string>();
