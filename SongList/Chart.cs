@@ -1005,7 +1005,28 @@ namespace SongList
 
         public bool SomethingIsInFirstMeasure()
         {
-            return ((volL.First<Tuple<TimePos, Vol>>().Item1.Measure() == 1) ||
+            bool b = false;
+
+            if (volL.Count != 0)
+                if (volL[0].Item1.Measure() == 1) b = true;
+            if (fxL.Count != 0)
+                if (fxL[0].Item1.Measure() == 1) b = true;
+            if (btA.Count != 0)
+                if (btA[0].Item1.Measure() == 1) b = true;
+            if (btB.Count != 0)
+                if (btB[0].Item1.Measure() == 1) b = true;
+            if (btC.Count != 0)
+                if (btC[0].Item1.Measure() == 1) b = true;
+            if (btD.Count != 0)
+                if (btD[0].Item1.Measure() == 1) b = true;
+            if (fxR.Count != 0)
+                if (fxR[0].Item1.Measure() == 1) b = true;
+            if (volR.Count != 0)
+                if (volR[0].Item1.Measure() == 1) b = true;
+
+            return b;
+            /*
+                    return ((volL.First<Tuple<TimePos, Vol>>().Item1.Measure() == 1)) ||
                     (fxL.First<Tuple<TimePos, Fx>>().Item1.Measure() == 1) ||
                     (btA.First<Tuple<TimePos, Bt>>().Item1.Measure() == 1) ||
                     (btB.First<Tuple<TimePos, Bt>>().Item1.Measure() == 1) ||
@@ -1013,6 +1034,7 @@ namespace SongList
                     (btD.First<Tuple<TimePos, Bt>>().Item1.Measure() == 1) ||
                     (fxR.First<Tuple<TimePos, Fx>>().Item1.Measure() == 1) ||
                     (volR.First<Tuple<TimePos, Vol>>().Item1.Measure() == 1));
+                    */
         }
 
         private bool SomethingIsInFirstMeasureUtilList<T>(List<Tuple<TimePos, T>> list)

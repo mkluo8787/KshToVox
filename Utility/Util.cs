@@ -18,6 +18,12 @@ namespace Utility
         readonly public static string toolsPath = binPath + @"tools\";
         readonly public static string cachePath = binPath + @"cache\";
 
+        readonly public static string musicDbPath = Util.kfcPath + "data\\others\\music_db.xml";
+        readonly public static string metaDbPath = Util.kfcPath + "data\\others\\meta_usedId.xml";
+
+        readonly public static string musicDbCachePath = cachePath + "music_db.xml";
+        readonly public static string metaDbCachePath = cachePath + "meta_usedId.xml";
+
         public static void ClearCache()
         {
             if (Directory.Exists(Util.cachePath))
@@ -26,21 +32,33 @@ namespace Utility
         }
 
         public static void DbBackup()
-        {
-            FileInfo musicDbFile = new FileInfo(Util.kfcPath + "\\data\\others\\music_db.xml");
-            FileInfo metaDbFile = new FileInfo(Util.kfcPath + "\\data\\others\\meta_usedId.xml");
-            musicDbFile.CopyTo(Util.cachePath + "music_db.xml");
-            metaDbFile.CopyTo(Util.cachePath + "meta_usedId.xml");
+        {   
+            if (File.Exists(musicDbPath))
+            {
+                FileInfo musicDbFile = new FileInfo(musicDbPath);
+                musicDbFile.CopyTo(musicDbCachePath);
+            }
+            if (File.Exists(metaDbPath))
+            {
+                FileInfo metaDbFile = new FileInfo(metaDbPath);
+                metaDbFile.CopyTo(metaDbCachePath);
+            }
         }
 
         public static void DbRestore()
         {
-            FileInfo musicDbFile = new FileInfo(Util.cachePath + "music_db.xml");
-            FileInfo metaDbFile = new FileInfo(Util.cachePath + "meta_usedId.xml");
-            File.Delete(Util.kfcPath + "\\data\\others\\music_db.xml");
-            File.Delete(Util.kfcPath + "\\data\\others\\meta_usedId.xml");
-            musicDbFile.CopyTo(Util.kfcPath + "\\data\\others\\music_db.xml");
-            metaDbFile.CopyTo(Util.kfcPath + "\\data\\others\\meta_usedId.xml");
+            if (File.Exists(musicDbCachePath))
+            {
+                FileInfo musicDbFile = new FileInfo(musicDbCachePath);
+                File.Delete(musicDbPath);
+                musicDbFile.CopyTo(musicDbPath);
+            }
+            if (File.Exists(metaDbCachePath))
+            {
+                FileInfo metaDbFile = new FileInfo(metaDbCachePath);
+                File.Delete(metaDbPath);
+                metaDbFile.CopyTo(metaDbPath);
+            }
         }
 
         public static void setKfcPath(string newPath)

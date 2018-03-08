@@ -132,6 +132,8 @@ namespace SongList
                     string outSoundPath = SongList.cachePath + BaseName() + Suffix(SongList.DIFS[id]) + ".wav";
                     string preSoundPath = SongList.cachePath + BaseName() + Suffix(SongList.DIFS[id]) + "_p.wav";
 
+                    string oriSoundPath = soundPath;
+
                     // SOX BUG: the mp3 to wav conversion seems to ignore the implicit offset in mp3.
                     // so here we do a conversion first with 
                     if (ext == ".mp3")
@@ -152,9 +154,9 @@ namespace SongList
                         ConvertAndTrimToWav(soundPath, outSoundPath, int.Parse(kshParse["o"]), -1);
 
                     if (soundCaches.Count == 0)
-                        soundCaches.Add(soundPath, new Tuple<string, string>(outSoundPath, ""));
+                        soundCaches.Add(oriSoundPath, new Tuple<string, string>(outSoundPath, ""));
                     else
-                        soundCaches.Add(soundPath, new Tuple<string, string>(outSoundPath, Suffix(SongList.DIFS[id])));
+                        soundCaches.Add(oriSoundPath, new Tuple<string, string>(outSoundPath, Suffix(SongList.DIFS[id])));
 
                     // Preview sound
 
@@ -166,9 +168,9 @@ namespace SongList
                     WavBlockSizeFix(preSoundPath);                    
 
                     if (preSoundCaches.Count == 0)
-                        preSoundCaches.Add(soundPath, new Tuple<string, string>(preSoundPath, ""));
+                        preSoundCaches.Add(oriSoundPath, new Tuple<string, string>(preSoundPath, ""));
                     else
-                        preSoundCaches.Add(soundPath, new Tuple<string, string>(preSoundPath, Suffix(SongList.DIFS[id])));
+                        preSoundCaches.Add(oriSoundPath, new Tuple<string, string>(preSoundPath, Suffix(SongList.DIFS[id])));
                 }
 
                 // Parsing for Image

@@ -26,7 +26,7 @@ namespace AutoLoad
             OptionSet p = new OptionSet() {
                 { "p|path=", "The {PATH} of KFC directory.",
                    v => Util.setKfcPath(v) },
-                { "nt|no-texture",  "Skip the texture replacement (which takes a long time).",
+                { "t|texture",  "Do the texture replacement (which takes a long time).",
                    v => skipTextures = v != null },
                 { "f|force-reload",  "Force reload meta DB and all songs.",
                    v => forceRaload = v != null }
