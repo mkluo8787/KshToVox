@@ -339,25 +339,6 @@ namespace SongList
                 tasks.Add(song.ImageToTex("jk_" + song.BaseNameNum() + "_1.tga", texPath + "tex\\", 202));
             }
 
-            // Tex conversion threads sync.
-            foreach (Task task in tasks)
-                task.Wait();
-
-            foreach (int ifsId in targetIfs)
-            {
-                // DO: tex -> ifs
-
-                string texPath = texPaths[ifsId];
-
-                string ifsPath = Util.kfcPath + "data\\graphics\\s_jacket" + ifsId.ToString().PadLeft(2, '0') + ".ifs";
-
-                Util.TexToIfs(texPath, ifsPath);
-            }
-
-            // jk_b and jk_s
-
-            tasks = new List<Task>();
-
             for (int id = 0; id < listSize; ++id)
             {
                 Song song = songs[id];
@@ -400,6 +381,17 @@ namespace SongList
 
                     Util.TexToIfs(texPath, ifsPath);
                 }
+            }
+
+            foreach (int ifsId in targetIfs)
+            {
+                // DO: tex -> ifs
+
+                string texPath = texPaths[ifsId];
+
+                string ifsPath = Util.kfcPath + "data\\graphics\\s_jacket" + ifsId.ToString().PadLeft(2, '0') + ".ifs";
+
+                Util.TexToIfs(texPath, ifsPath);
             }
         }
 

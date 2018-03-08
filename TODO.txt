@@ -50,8 +50,4 @@ Cache mechanic design (now using a naive method)
 
 Bug: Image convert cause ifs broken (Koakuma jpg)
 
-Bug: Offset (2 minute fighters form Wang)
-    * It is due to the conversion bug of sox.
-    * Need nore test to make sure it is resolved
-
-Program args
+indicate song removal while the path is missing

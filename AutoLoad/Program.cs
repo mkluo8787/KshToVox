@@ -107,11 +107,13 @@ namespace AutoLoad
             }
             catch (Exception e)
             {
-                Util.ConsoleWrite("*** Exception encountered while saving ***");
+                Util.ConsoleWrite("*** Fetal: Exception encountered while saving ***");
                 Util.ConsoleWrite(e.Message);
 
                 File.Delete(Util.kfcPath + "\\data\\others\\music_db.xml");
                 File.Delete(Util.kfcPath + "\\data\\others\\meta_usedId.xml");
+
+                Util.ConsoleWrite(@"*** Please force reload with '--f' ***");
 
                 return;
             }
