@@ -38,6 +38,7 @@ Bug: Image convert cause ifs broken (Koakuma jpg)
 indicate song removal while the path is missing
 
 Task close on abort
+(CancellationTokenSource)
 
 corrupted vox detect
 

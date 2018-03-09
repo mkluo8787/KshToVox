@@ -155,7 +155,8 @@ namespace SongList
                 }
             }
 
-            List<Task> tasks = new List<Task>();
+            //List<Task> tasks = new List<Task>();
+            Dictionary<string, Task> tasks = new Dictionary<string, Task>();
 
             foreach (DirectoryInfo kshSong in kshFolder.GetDirectories())
             {
@@ -165,7 +166,7 @@ namespace SongList
                     if (Directory.GetLastWriteTime(kshSong.FullName).ToString() ==
                         lastModifiedFolder[oldId])
                     {
-                        Util.ConsoleWrite("Old: " + songs[kshPathToId[kshSong.FullName]].Data("title_name"));
+                        //Util.ConsoleWrite("Old: " + songs[kshPathToId[kshSong.FullName]].Data("title_name"));
                         continue; // Skips the entire loading
                     }
                 }
@@ -190,19 +191,20 @@ namespace SongList
                 Util.ConsoleWrite("New: " + kshSong.Name);
 
                 Task task = Task.Run(() => AddKshSong_Task(kshSong.FullName, newId, idToVer[newId]));
-                tasks.Add(task);
+                tasks.Add(kshSong.Name, task);
             }
 
-            foreach (Task task in tasks)
+            //foreach (Task task in tasks)
+            foreach (KeyValuePair<string, Task> task in tasks)
                 try
                 {
-                    task.Wait();
+                    task.Value.Wait();
                 }
                 catch (AggregateException ae)
                 {
                     foreach (var e in ae.InnerExceptions)
                     {
-                        Util.ConsoleWrite("*** Exception encountered while adding new song ***");
+                        Util.ConsoleWrite("*** Exception encountered while loading new song " + task.Key + " ***");
                         Util.ConsoleWrite(e.Message);
                     }
                 }
@@ -246,8 +248,18 @@ namespace SongList
                 Song song = songs[id];
                 if (song.IsDummy()) continue;
 
-                if (!IsUnmoddedCustom(id))
-                    song.Save(kfcPath);
+                try
+                {
+                    if (!IsUnmoddedCustom(id))
+                        song.Save(kfcPath);
+                }
+                catch (Exception e)
+                {
+                    Util.ConsoleWrite("*** Exception encountered while saving song " + song.Data("title_name") + " ***");
+                    Util.ConsoleWrite(e.Message);
+
+                    songs[id] = new Song();
+                }
             }
 
             // Write to db

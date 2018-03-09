@@ -52,7 +52,7 @@ namespace AutoLoad
  | ' / ___| |__ | | __\ \  / /____  __
  |  < / __| '_ \| |/ _ \ \/ / _ \ \/ /
  | . \\__ \ | | | | (_) \  / (_) >  <  March 2018. Alpha version
- |_|\_\___/_| |_|_|\___/ \/ \___/_/\_\ Author: Iced & MKLUO
+ |_|\_\___/_| |_|_|\___/ \/ \___/_/\_\ Author: NTGMG
 
 ");
 
@@ -94,6 +94,8 @@ namespace AutoLoad
 
                 Util.DbRestore();
 
+                Console.ReadKey();
+
                 return;
             }
 
@@ -107,13 +109,16 @@ namespace AutoLoad
             }
             catch (Exception e)
             {
-                Util.ConsoleWrite("*** Fetal: Exception encountered while saving ***");
+                
+                Util.ConsoleWrite("*** Fatal: Exception encountered while saving ***");
                 Util.ConsoleWrite(e.Message);
 
                 File.Delete(Util.kfcPath + "\\data\\others\\music_db.xml");
                 File.Delete(Util.kfcPath + "\\data\\others\\meta_usedId.xml");
 
                 Util.ConsoleWrite(@"*** Please force reload with '--f' ***");
+
+                Console.ReadKey();
 
                 return;
             }
@@ -138,7 +143,13 @@ namespace AutoLoad
                 }
             }
 
-            Util.ConsoleWrite("\nLoading Done. Press any key to proceed...");
+            Util.ConsoleWrite(@"
+/////////////////////////////////////////////////
+///                                           ///
+/// Loading Done! Press any key to proceed... ///
+///                                           ///
+/////////////////////////////////////////////////
+");
             Console.ReadKey();
         }
     }
