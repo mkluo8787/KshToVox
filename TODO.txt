@@ -1,24 +1,11 @@
 
-Form Design/Implementation
-
-	MVC Design
-
-Chart
-	
-	Flip
-
-
 * the 5th line in the vol track may be the stop effect?
-
-* KeyBoard ShortCuts
 
 * not all fx are supported
 
 * #fx <= 12
 
 * beat format is restricted to n/4!
-
-* Toolstrip: Close
 
 Vox versions handle.
 
@@ -31,8 +18,6 @@ selfmade & original chart grouping
 Exceptions
 
     song length < 2:30
-
-Autoload: show loading info on cmd
 
 Some more customization on kfc layout
 
@@ -52,6 +37,10 @@ Bug: Image convert cause ifs broken (Koakuma jpg)
 
 indicate song removal while the path is missing
 
-DBrestore exception
+Task close on abort
 
-firstMeasure exception: count == 0
+corrupted vox detect
+
+song save exception
+
+readme

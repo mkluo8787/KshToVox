@@ -20,14 +20,14 @@ namespace AutoLoad
         {
             // Arguments
 
-            bool skipTextures = false;
+            bool doTextures = false;
             bool forceRaload = false;
 
             OptionSet p = new OptionSet() {
                 { "p|path=", "The {PATH} of KFC directory.",
                    v => Util.setKfcPath(v) },
                 { "t|texture",  "Do the texture replacement (which takes a long time).",
-                   v => skipTextures = v == null },
+                   v => doTextures = v != null },
                 { "f|force-reload",  "Force reload meta DB and all songs.",
                    v => forceRaload = v != null }
             };
@@ -120,7 +120,7 @@ namespace AutoLoad
 
             Util.ClearCache();
 
-            if (!skipTextures)
+            if (doTextures)
             {
                 Util.ConsoleWrite("Saving texture... (This should took a while)");
 

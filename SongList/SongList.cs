@@ -165,7 +165,7 @@ namespace SongList
                     if (Directory.GetLastWriteTime(kshSong.FullName).ToString() ==
                         lastModifiedFolder[oldId])
                     {
-                        Util.ConsoleWrite("Song: " + songs[kshPathToId[kshSong.FullName]].Data("title_name") + " Ksh data is unchanged. Will be skipped while saving.");
+                        Util.ConsoleWrite("Old: " + songs[kshPathToId[kshSong.FullName]].Data("title_name"));
                         continue; // Skips the entire loading
                     }
                 }
@@ -187,7 +187,7 @@ namespace SongList
 
                 if (newId == -1) throw new Exception("Song DB Full!");
 
-                Util.ConsoleWrite("Load Ksh Song: " + kshSong.Name);
+                Util.ConsoleWrite("New: " + kshSong.Name);
 
                 Task task = Task.Run(() => AddKshSong_Task(kshSong.FullName, newId, idToVer[newId]));
                 tasks.Add(task);
