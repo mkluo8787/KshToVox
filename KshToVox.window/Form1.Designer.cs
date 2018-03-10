@@ -96,8 +96,9 @@
             // 
             // importkshToolStripMenuItem
             // 
+            this.importkshToolStripMenuItem.Enabled = false;
             this.importkshToolStripMenuItem.Name = "importkshToolStripMenuItem";
-            this.importkshToolStripMenuItem.Size = new System.Drawing.Size(145, 22);
+            this.importkshToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.importkshToolStripMenuItem.Text = "Import .ksh...";
             // 
             // helpToolStripMenuItem

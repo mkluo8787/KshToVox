@@ -45,3 +45,5 @@ corrupted vox detect
 song save exception
 
 readme
+
+*ifs corrupts when broken image is packed inside

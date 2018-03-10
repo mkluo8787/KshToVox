@@ -83,16 +83,18 @@ namespace KshToVox.window
 
 		private void splitContainer2_Panel2_DragEnter(object sender, DragEventArgs e)
 		{
-			if (e.Data.GetDataPresent(DataFormats.FileDrop)) e.Effect = DragDropEffects.Copy;
+			//if (e.Data.GetDataPresent(DataFormats.FileDrop)) e.Effect = DragDropEffects.Copy;
 		}
 
 		private void splitContainer2_Panel2_DragDrop(object sender, DragEventArgs e)
 		{
+            /*
 			string[] folders = (string[])e.Data.GetData(DataFormats.FileDrop);
 			if (!((folders.Length == 1) && (Directory.Exists(folders[0])))) return;
 
 			Program.ImportSong(folders[0], UpdateView);
 			UpdateView();
+            */
 		}
 
 		private void button2_Click(object sender, EventArgs e)
@@ -143,6 +145,5 @@ namespace KshToVox.window
         {
             e.Cancel = Program.CheckUnsavedB4Closing();
         }
-
     }
 }

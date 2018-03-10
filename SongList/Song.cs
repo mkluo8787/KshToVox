@@ -129,8 +129,8 @@ namespace SongList
                     if (!((ext == ".mp3") || (ext == ".ogg") || (ext == ".wav")))
                         throw new Exception("Music file format " + ext + " invalid!");
 
-                    string outSoundPath = SongList.cachePath + BaseName() + Suffix(SongList.DIFS[id]) + ".wav";
-                    string preSoundPath = SongList.cachePath + BaseName() + Suffix(SongList.DIFS[id]) + "_p.wav";
+                    string outSoundPath = Util.cachePath + BaseName() + Suffix(SongList.DIFS[id]) + ".wav";
+                    string preSoundPath = Util.cachePath + BaseName() + Suffix(SongList.DIFS[id]) + "_p.wav";
 
                     string oriSoundPath = soundPath;
 
@@ -253,7 +253,7 @@ namespace SongList
                 // .2dx to wav (looking for difficulty-specific sound file)
 
                 string soundPath = kfcPath + "\\data\\sound\\" + BaseName() + Suffix(chartInfo.Key) + ".2dx";
-                string outSoundPath = SongList.cachePath + BaseName() + Suffix(chartInfo.Key) + ".wav";
+                string outSoundPath = Util.cachePath + BaseName() + Suffix(chartInfo.Key) + ".wav";
                 if (File.Exists(soundPath))
                 {
                     FileStream sstream = new FileStream(soundPath, FileMode.Open);
@@ -272,7 +272,7 @@ namespace SongList
             // .2dx to wav (looking for common sound file)
 
             string soundPath2 = kfcPath + "\\data\\sound\\" + BaseName() + ".2dx";
-            string outSoundPath2 = SongList.cachePath + BaseName() + ".wav";
+            string outSoundPath2 = Util.cachePath + BaseName() + ".wav";
             if (!File.Exists(soundPath2)) throw new Exception("");
             FileStream sstream2 = new FileStream(soundPath2, FileMode.Open);
             FileStream osstream2 = new FileStream(outSoundPath2, FileMode.Create);

@@ -27,7 +27,17 @@ namespace Utility
         public static void ClearCache()
         {
             if (Directory.Exists(Util.cachePath))
-                Directory.Delete(Util.cachePath, true);
+                try
+                {
+                    Directory.Delete(Util.cachePath, true);
+                }
+                catch (Exception e)
+                {
+                    ConsoleWrite("*** Exception encountered while clearing cache. Maybe someone is accessing it? ***");
+                    ConsoleWrite(e.Message);
+
+                    Console.ReadKey();
+                }
             Directory.CreateDirectory(Util.cachePath);
         }
 

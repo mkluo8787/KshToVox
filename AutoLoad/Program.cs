@@ -21,15 +21,18 @@ namespace AutoLoad
             // Arguments
 
             bool doTextures = false;
-            bool forceRaload = false;
+            bool forceReload = false;
+            bool forceMeta = false;
 
             OptionSet p = new OptionSet() {
                 { "p|path=", "The {PATH} of KFC directory.",
                    v => Util.setKfcPath(v) },
                 { "t|texture",  "Do the texture replacement (which takes a long time).",
                    v => doTextures = v != null },
-                { "f|force-reload",  "Force reload meta DB and all songs.",
-                   v => forceRaload = v != null }
+                { "f|force-reload",  "Force reload all songs.",
+                   v => forceReload = v != null },
+                { "fm|force-meta",  "Force reload meta DB and all songs.",
+                   v => forceMeta = v != null }
             };
 
             List<string> extra;
@@ -52,7 +55,7 @@ namespace AutoLoad
  | ' / ___| |__ | | __\ \  / /____  __
  |  < / __| '_ \| |/ _ \ \/ / _ \ \/ /
  | . \\__ \ | | | | (_) \  / (_) >  <  March 2018. Alpha version
- |_|\_\___/_| |_|_|\___/ \/ \___/_/\_\ Author: NTGMG
+ |_|\_\___/_| |_|_|\___/ \/ \___/_/\_\ Author: NTUMG
 
 ");
 
@@ -60,6 +63,7 @@ namespace AutoLoad
             if (!File.Exists(Util.kfcPath + "soundvoltex.dll"))
             {
                 Console.WriteLine("soundvoltex.dll not found! Please choose a valid KFC path.");
+                Console.ReadKey();
                 return;
             }
 
@@ -68,7 +72,7 @@ namespace AutoLoad
             // DB backup (for later restore)
             Util.DbBackup();
 
-            if (forceRaload)
+            if (forceMeta)
                 File.Delete(Util.kfcPath + "data\\others\\meta_usedId.xml");
 
             Util.ClearCache();
@@ -85,7 +89,7 @@ namespace AutoLoad
                                             metaDb.IdToIfs(),
                                             metaDb.IdToVer(),
                                             metaDb.TypeAttr(),
-                                            metaDb.FirstLoad());
+                                            metaDb.FirstLoad() || forceReload);
             }
             catch (Exception e)
             {

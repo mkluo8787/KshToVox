@@ -15,12 +15,6 @@ namespace SongList
 {
 	public class SongList
 	{
-        readonly public static string binPath = System.IO.Path.GetDirectoryName(
-            System.Reflection.Assembly.GetExecutingAssembly().Location
-            ) + "\\";
-        readonly public static string toolsPath = binPath + @"tools\";
-        readonly public static string cachePath = binPath + @"cache\";
-
         private readonly static int listSize = 1061;
 		public readonly static string[] DIFS = { "novice", "advanced", "exhaust", "infinite" };
 
@@ -35,12 +29,12 @@ namespace SongList
                 songs[id] = new Song();
                 songsIdOccupied[id] = false;
             }
-            Directory.CreateDirectory(cachePath);
+            Directory.CreateDirectory(Util.cachePath);
 		}
 
 		~SongList()
 		{
-			Directory.Delete(cachePath, true);
+			//Directory.Delete(cachePath, true);
 		}
 
 		// From KFC
@@ -163,12 +157,8 @@ namespace SongList
                 if (kshPathToId.ContainsKey(kshSong.FullName)) // cache hit!
                 {
                     int oldId = kshPathToId[kshSong.FullName];
-                    if (Directory.GetLastWriteTime(kshSong.FullName).ToString() ==
-                        lastModifiedFolder[oldId])
-                    {
-                        //Util.ConsoleWrite("Old: " + songs[kshPathToId[kshSong.FullName]].Data("title_name"));
-                        continue; // Skips the entire loading
-                    }
+                    //Util.ConsoleWrite("Old: " + songs[kshPathToId[kshSong.FullName]].Data("title_name"));
+                    continue; // Skips the entire loading
                 }
 
                 if (kshSong.GetFiles("*.ksh").Length == 0)
@@ -422,7 +412,7 @@ namespace SongList
 			return list;
 		}
 
-        public static string GetCachePath() { return cachePath; }
+        public static string GetCachePath() { return Util.cachePath; }
 
         private bool IsUnmoddedCustom(int id)
         {

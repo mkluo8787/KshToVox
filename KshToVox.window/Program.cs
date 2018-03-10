@@ -80,7 +80,7 @@ namespace KshToVox.window
             songList.Save();
             SetStatus("KFC song list saved.");
         }
-
+        /*
 		public static void ImportSong(Action callbackUpdate)
 		{
             if (loading) return;
@@ -95,7 +95,7 @@ namespace KshToVox.window
                 ImportSong(folderBrowserDialog1.SelectedPath, callbackUpdate);
 			}
 		}
-
+        
 		public static void ImportSong(string path, Action callbackUpdate)
 		{
             if (loading) return;
@@ -111,7 +111,7 @@ namespace KshToVox.window
             Thread thread = new Thread(() => ImportSong_Thread(path, callbackUpdate));
             thread.Start();
         }
-
+        
         private static void ImportSong_Thread(string path, Action callbackUpdate)
         {
             loading = true;
@@ -126,7 +126,7 @@ namespace KshToVox.window
             
             callbackUpdate();
         }
-
+        */
         public static void DeleteSong()
 		{
             if (loading) return;
