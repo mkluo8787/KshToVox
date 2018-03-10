@@ -212,6 +212,10 @@ namespace SongList
             {
                 return this.pos;
             }
+            public int getFlag()
+            {
+                return this.flag;
+            }
             public void Print()
             {
                 Console.WriteLine("({0}, {1}, {2})", this.pos, this.flag, this.expand);
@@ -707,6 +711,26 @@ namespace SongList
             fixSlamAndSetFlip(volL);
             fixSlamAndSetFlip(volR);
 
+            void fixInfiniteLaser(List<Tuple<TimePos, Vol>> vo)
+            {
+                int point = 2;
+                while(point < vo.Count)
+                {
+                    if (vo[point].Item2.getPos() == vo[point - 1].Item2.getPos() && 
+                        vo[point - 1].Item2.getPos() == vo[point - 2].Item2.getPos())
+                    {
+                        if (vo[point - 1].Item2.getFlag() != 2 && vo[point - 2].Item2.getFlag() != 2)
+                        {
+                            vo.RemoveAt(point-1);
+                            continue;
+                        }
+                    }
+                    point++;
+                }
+            }
+            fixInfiniteLaser(volL);
+            fixInfiniteLaser(volR);
+
             /****************************************
                               beat
             ****************************************/
@@ -750,19 +774,20 @@ namespace SongList
             /****************************************
                              endPos
             ****************************************/
-            endPos = new TimePos(barCount + 1, 1, 0);
+            endPos = new TimePos(barCount + 2, 1, 0);
 
             /****************************************
                                Sp
             ****************************************/
             // "CAM_RotX"
             double CamX = 0;
+            double effectRatio = 0.0050;
             for (int i = 0; i < chartList.Count; i++)
             {
                 if (chartList[i].Length < 9) continue;
                 if (chartList[i].Substring(0, 9) == "zoom_top=")
                 {
-                    CamX = Math.Round(Convert.ToDouble(chartList[i].Substring(9)) * (0.0067), 2);
+                    CamX = Math.Round(Convert.ToDouble(chartList[i].Substring(9)) * (effectRatio), 2);
                     break;
                 }
             }
@@ -778,7 +803,7 @@ namespace SongList
                 else if (chartList[i].Length < 9) continue;
                 else if (chartList[i].Substring(0, 9) == "zoom_top=")
                 {
-                    CamX = Math.Round(Convert.ToDouble(chartList[i].Substring(9)) * (0.0067), 2);
+                    CamX = Math.Round(Convert.ToDouble(chartList[i].Substring(9)) * (effectRatio), 2);
                     sp[sp.Count - 1].Item2.setEndAttribute(CamX);
                     sp.Add(new Tuple<TimePos, Sp>(index2TimePos[i],
                                                   new Sp("CAM_RotX", 0, CamX)));
@@ -792,7 +817,7 @@ namespace SongList
                 if (chartList[i].Length < 12) continue;
                 if (chartList[i].Substring(0, 12) == "zoom_bottom=")
                 {
-                    CamR = Math.Round(Convert.ToDouble(chartList[i].Substring(12)) * (-0.0067), 2);
+                    CamR = Math.Round(Convert.ToDouble(chartList[i].Substring(12)) * (-effectRatio), 2);
                     break;
                 }
             }
@@ -808,7 +833,7 @@ namespace SongList
                 else if (chartList[i].Length < 12) continue;
                 else if (chartList[i].Substring(0, 12) == "zoom_bottom=")
                 {
-                    CamR = Math.Round(Convert.ToDouble(chartList[i].Substring(12)) * (-0.0067), 2);
+                    CamR = Math.Round(Convert.ToDouble(chartList[i].Substring(12)) * (-effectRatio), 2);
                     sp[sp.Count - 1].Item2.setEndAttribute(CamR);
                     sp.Add(new Tuple<TimePos, Sp>(index2TimePos[i],
                                                   new Sp("CAM_Radi", 0, CamR)));
