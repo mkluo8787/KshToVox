@@ -57,3 +57,5 @@ readme
  sound remaster
 
  search for different beat type
+
+ progress bar
