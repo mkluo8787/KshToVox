@@ -47,3 +47,11 @@ song save exception
 readme
 
 *ifs corrupts when broken image is packed inside
+
+.NET 4.7.1
+
+ data\others\vox
+
+ ksh difficulty hit
+
+ sound remaster

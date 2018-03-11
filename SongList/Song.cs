@@ -179,7 +179,7 @@ namespace SongList
 
                 // ONLY supporting one jacket now!
 
-                image = new FshImage(imagePath);
+                image = new KshImage(imagePath);
 
                 /*
                 if (!images.ContainsKey(imagePath))
@@ -546,7 +546,7 @@ namespace SongList
         // Image (Jacket)
 
         //Dictionary<string, Tuple<Image, string>> images = new Dictionary<string, Tuple<Image, string>>();
-        FshImage image;
+        KshImage image;
 
         //string songCachePath;
 

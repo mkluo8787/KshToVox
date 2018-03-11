@@ -13,9 +13,9 @@ using Utility;
 
 namespace SongList
 {
-    class FshImage
+    class KshImage
     {
-        public FshImage(string path)
+        public KshImage(string path)
         {
             this.path = path;
         }
