@@ -142,8 +142,17 @@ namespace SongList
                         {
                             using (WaveStream pcm = WaveFormatConversionStream.CreatePcmStream(mp3))
                             {
-                                soundPath = soundPath.Substring(0, soundPath.Length - 4) + ".wav";
-                                WaveFileWriter.CreateWaveFile(soundPath, pcm);
+                                FileInfo mp3Path = new FileInfo(soundPath);
+                                string mp3Name = mp3Path.Name;
+
+                                string tempPath = Util.cachePath + Util.RandomString(10) + "\\";
+                                Directory.CreateDirectory(tempPath);
+                                string wavPath = tempPath + mp3Name.Substring(0, mp3Name.Length - 4) + ".wav";
+                                if (File.Exists(wavPath))
+                                    File.Delete(wavPath);
+                                WaveFileWriter.CreateWaveFile(wavPath, pcm);
+
+                                soundPath = wavPath;
                             }
                         }
                     }
@@ -391,23 +400,26 @@ namespace SongList
 
             string soxExe = Util.toolsPath + "sox\\sox.exe";
 
+            string soxParam1 = "-G -q";
+            string soxParam2 = "-e ms-adpcm -r 44100 --norm";
+
             if (duraMs < 0)
             {
                 if (trimMs > 0)
-                    Util.Execute(soxExe, "-G -q \"" + src + "\" -r 44100 -e ms-adpcm \"" + dest + "\" trim " + trimSec.ToString() + " -0.0");
+                    Util.Execute(soxExe, soxParam1 + " \"" + src + "\" " + soxParam2 + " \"" + dest + "\" trim " + trimSec.ToString() + " -0.0");
                 else if (trimMs < 0)
-                    Util.Execute(soxExe, "-G -q \"" + src + "\" -r 44100 -e ms-adpcm \"" + dest + "\" pad " + (-trimSec).ToString() + " 0.0");
+                    Util.Execute(soxExe, soxParam1 + " \"" + src + "\" " + soxParam2 + " \"" + dest + "\" pad " + (-trimSec).ToString() + " 0.0");
                 else
-                    Util.Execute(soxExe, "-G -q \"" + src + "\" -r 44100 -e ms-adpcm \"" + dest + "\"");
+                    Util.Execute(soxExe, soxParam1 + " \"" + src + "\" " + soxParam2 + " \"" + dest + "\"");
             }
             else
             {
                 if (trimMs > 0)
-                    Util.Execute(soxExe, "-G -q \"" + src + "\" -r 44100 -e ms-adpcm \"" + dest + "\" trim " + trimSec.ToString() + " " + duraSec.ToString());
+                    Util.Execute(soxExe, soxParam1 + " \"" + src + "\" " + soxParam2 + " \"" + dest + "\" trim " + trimSec.ToString() + " " + duraSec.ToString());
                 else if (trimMs < 0)
-                    Util.Execute(soxExe, "-G -q \"" + src + "\" -r 44100 -e ms-adpcm \"" + dest + "\" pad " + (-trimSec).ToString() + " 0.0 trim 0 " + duraSec.ToString());
+                    Util.Execute(soxExe, soxParam1 + " \"" + src + "\" " + soxParam2 + " \"" + dest + "\" pad " + (-trimSec).ToString() + " 0.0 trim 0 " + duraSec.ToString());
                 else
-                    Util.Execute(soxExe, "-G -q \"" + src + "\" -r 44100 -e ms-adpcm \"" + dest + "\" trim 0 " + duraSec.ToString());
+                    Util.Execute(soxExe, soxParam1 + " \"" + src + "\" " + soxParam2 + " \"" + dest + "\" trim 0 " + duraSec.ToString());
             }
         }
 

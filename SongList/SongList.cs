@@ -183,7 +183,7 @@ namespace SongList
                 Task task = Task.Run(() => AddKshSong_Task(kshSong.FullName, newId, idToVer[newId]));
                 tasks.Add(kshSong.Name, task);
             }
-
+            
             //foreach (Task task in tasks)
             foreach (KeyValuePair<string, Task> task in tasks)
                 try
@@ -198,7 +198,7 @@ namespace SongList
                         Util.ConsoleWrite(e.Message);
                     }
                 }
-
+    
             loaded = true;
         }
 
