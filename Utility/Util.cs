@@ -71,7 +71,44 @@ namespace Utility
             }
         }
 
-        public static void setKfcPath(string newPath)
+        public static void CopyDirectory(string path, string newPath)
+        {
+            // Get the subdirectories for the specified directory.
+            DirectoryInfo dir = new DirectoryInfo(path);
+
+            if (!dir.Exists)
+            {
+                throw new DirectoryNotFoundException(
+                    "Source directory does not exist or could not be found: "
+                    + path);
+            }
+
+            DirectoryInfo[] dirs = dir.GetDirectories();
+            // If the destination directory doesn't exist, create it.
+            if (!Directory.Exists(newPath))
+            {
+                Directory.CreateDirectory(newPath);
+            }
+
+            // Get the files in the directory and copy them to the new location.
+            FileInfo[] files = dir.GetFiles();
+            foreach (FileInfo file in files)
+            {
+                string temppath = Path.Combine(newPath, file.Name);
+                file.CopyTo(temppath, false);
+            }
+
+            // If copying subdirectories, copy them and their contents to new location.
+            foreach (DirectoryInfo subdir in dirs)
+            {
+                string temppath = Path.Combine(newPath, subdir.Name);
+                CopyDirectory(subdir.FullName, temppath);
+            }
+            
+        }
+    
+
+        public static void SetKfcPath(string newPath)
         {
             if (!Directory.Exists(newPath))
                 throw new Exception("The path specified does not exist!");

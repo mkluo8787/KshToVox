@@ -48,24 +48,21 @@ namespace KshToVox.window
 
 			toolStripStatusLabel1.Text = Program.GetStatus();
             toolStripStatusLabel3.Text = Program.GetStatusR();
-
-            button2.Enabled = Program.Loaded();
-            //button3.Enabled = Program.Loaded();
-            button3.Enabled = false;
-
         }
 
+        private void saveToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			Program.SaveSongList();
+			UpdateView();
+		}
+
+        /*
 		private void loadToolStripMenuItem_Click(object sender, EventArgs e)
 		{
 			Program.LoadSongList(UpdateView);
 			UpdateView();
 		}
 
-		private void saveToolStripMenuItem_Click(object sender, EventArgs e)
-		{
-			Program.SaveSongList();
-			UpdateView();
-		}
 
 		private void splitContainer1_Panel1_DragEnter(object sender, DragEventArgs e)
 		{
@@ -80,44 +77,31 @@ namespace KshToVox.window
 			Program.LoadSongList(folders[0], UpdateView);
 			UpdateView();
 		}
-
-		private void splitContainer2_Panel2_DragEnter(object sender, DragEventArgs e)
+*/
+        private void splitContainer2_Panel2_DragEnter(object sender, DragEventArgs e)
 		{
-			//if (e.Data.GetDataPresent(DataFormats.FileDrop)) e.Effect = DragDropEffects.Copy;
+			if (e.Data.GetDataPresent(DataFormats.FileDrop)) e.Effect = DragDropEffects.Copy;
 		}
 
 		private void splitContainer2_Panel2_DragDrop(object sender, DragEventArgs e)
 		{
-            /*
+            
 			string[] folders = (string[])e.Data.GetData(DataFormats.FileDrop);
-			if (!((folders.Length == 1) && (Directory.Exists(folders[0])))) return;
+			//if (!((folders.Length == 1) && (Directory.Exists(folders[0])))) return;
 
-			Program.ImportSong(folders[0], UpdateView);
+            foreach (string folder in folders)
+                if (!Directory.Exists(folder)) return;
+
+            Program.ImportSongs(folders);
 			UpdateView();
-            */
+            
 		}
 
 		private void button2_Click(object sender, EventArgs e)
 		{
-			Program.DeleteSong();
+			Program.ToggleDeleteSong();
 			UpdateView();
 		}
-
-		private void SongListTextBox_SelectedValueChanged(object sender, EventArgs e)
-		{
-            /*	
-            if (SongListTextBox.SelectedItem == null)
-                Program.UpdateSeletedSongId(-1);
-            else
-            {
-                KeyValuePair<int, Song> songId = (KeyValuePair<int, Song>)SongListTextBox.SelectedItem;
-                Program.UpdateSeletedSongId(songId.Key);
-
-            }
-
-            UpdateViewStatic();
-            */
-        }
 
         private void SongListTextBox_MouseClick(object sender, MouseEventArgs e)
         {	
@@ -144,6 +128,16 @@ namespace KshToVox.window
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
             e.Cancel = Program.CheckUnsavedB4Closing();
+        }
+
+        private void importkshToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Program.ImportSong();
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            Program.Update(UpdateView);
         }
     }
 }

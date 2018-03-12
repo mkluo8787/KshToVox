@@ -111,20 +111,25 @@ namespace SongList
 			loaded = true;
 		}
 
-        public void LoadFromKshSong(string kfcPath, Dictionary<int, int> idToIfs, Dictionary<int, int> idToVer, Dictionary<string, string> typeAttr, bool firstLoad)
+        public void LoadFromKshSongs(bool forceReload, bool forceMeta)
         {
             Clear();
 
-            this.kfcPath = kfcPath;
-            this.typeAttr = typeAttr;
-            this.idToIfs = idToIfs;
+            if (forceMeta)
+                File.Delete(Util.kfcPath + "data\\others\\meta_usedId.xml");
 
-            string kshFolderPath = kfcPath + "KshSongs\\";
+            MetaInfo metaDb = new MetaInfo();
+
+            this.typeAttr = metaDb.TypeAttr();
+            this.idToIfs = metaDb.IdToIfs();
+            this.idToVer = metaDb.IdToVer();
+
+            string kshFolderPath = Util.kfcPath + "KshSongs\\";
             DirectoryInfo kshFolder = new DirectoryInfo(kshFolderPath);
 
-            if (!firstLoad)
+            if (!(metaDb.FirstLoad() || forceReload))
             {
-                Load(kfcPath);
+                Load(Util.kfcPath);
 
                 // Check for oldid existance
 
@@ -134,32 +139,44 @@ namespace SongList
                     {
                         DirectoryInfo di = new DirectoryInfo(songs[id].Data("kshFolder"));
                         DirectoryInfo[] dis = kshFolder.GetDirectories();
+                        Dictionary<string, bool> disb = new Dictionary<string, bool>();
 
-                        bool hit = false;
                         foreach (DirectoryInfo existDi in dis)
-                            if (existDi.FullName == di.FullName)
-                                hit = true;
+                            disb.Add(existDi.FullName, true);
 
-                        if (!hit) // Ksh Folder removed!
+                        if (!disb.ContainsKey(di.FullName)) // Ksh Folder removed!
                         {
                             DeleteId(id);
                             lastModifiedFolder.Remove(id);
+                            kshPathToId.Remove(di.FullName);
+                            songsIdOccupied[id] = false;
                         }
                     }
                 }
             }
 
+            List<string> kshPaths = new List<string>();
+            foreach (DirectoryInfo kshSong in kshFolder.GetDirectories())
+                kshPaths.Add(kshSong.FullName);
+            
+            LoadKshSongs(kshPaths.ToArray());
+        }
+
+        public void LoadKshSongs(string[] paths)
+        {
             //List<Task> tasks = new List<Task>();
             Dictionary<string, Task> tasks = new Dictionary<string, Task>();
 
-            foreach (DirectoryInfo kshSong in kshFolder.GetDirectories())
+            foreach (string kshPath in paths)
             {
-                if (kshPathToId.ContainsKey(kshSong.FullName)) // cache hit!
+                if (kshPathToId.ContainsKey(kshPath)) // cache hit!
                 {
-                    int oldId = kshPathToId[kshSong.FullName];
+                    int oldId = kshPathToId[kshPath];
                     //Util.ConsoleWrite("Old: " + songs[kshPathToId[kshSong.FullName]].Data("title_name"));
                     continue; // Skips the entire loading
                 }
+
+                DirectoryInfo kshSong = new DirectoryInfo(kshPath);
 
                 if (kshSong.GetFiles("*.ksh").Length == 0)
                     //throw new Exception("Invalid folder in KshSongs!");
@@ -198,8 +215,6 @@ namespace SongList
                         Util.ConsoleWrite(e.Message);
                     }
                 }
-    
-            loaded = true;
         }
 
         private void Clear()
@@ -439,6 +454,7 @@ namespace SongList
 
         private Dictionary<string, string> typeAttr = new Dictionary<string, string>();
         private Dictionary<int, int> idToIfs;
+        private Dictionary<int, int> idToVer;
 
         private Dictionary<string, int> kshPathToId = new Dictionary<string, int>();
         private Dictionary<int, string> lastModifiedFolder = new Dictionary<int, string>();

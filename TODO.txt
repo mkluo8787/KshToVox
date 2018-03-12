@@ -59,3 +59,15 @@ readme
  search for different beat type
 
  progress bar
+
+ drag multiple folder
+
+ data grid: new, author, title, texture, id, folder name
+
+ buttons
+
+ delete mechanic
+
+ view pending
+
+ pending exceptions

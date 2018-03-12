@@ -7,6 +7,7 @@ using System.Windows.Forms;
 using System.IO;
 using System.Threading;
 
+using Utility;
 using SongList;
 
 namespace KshToVox.window
@@ -19,18 +20,64 @@ namespace KshToVox.window
 		[STAThread]
 		static void Main()
 		{
-			Application.EnableVisualStyles();
-			Application.SetCompatibleTextRenderingDefault(false);
-			Application.Run(new Form());	
-		}
+            Util.SetKfcPath(@"E:\CHIKAN\ks_to_SDVX\Minimal SDVX HH for FX testing");
 
-		static SongList.SongList songList = new SongList.SongList();
-		static string statusText = "";
+            Application.EnableVisualStyles();
+			Application.SetCompatibleTextRenderingDefault(false);
+
+            Init();
+
+            // Starts the form
+            Application.Run(new Form());
+        }
+
+        static void Init()
+        {
+            // Check if kfc dll exists.
+            if (!File.Exists(Util.kfcPath + "soundvoltex.dll"))
+            {
+                //Console.WriteLine("soundvoltex.dll not found! Please choose a valid KFC path.");
+                //Console.ReadKey();
+                return;
+            }
+
+            // Check if folders exist.
+            if (!Directory.Exists(Util.kfcPath + "KshSongs\\"))
+                Directory.CreateDirectory(Util.kfcPath + "KshSongs\\");
+
+            if (!Directory.Exists(Util.kfcPath + "data\\others\\vox\\"))
+                Directory.CreateDirectory(Util.kfcPath + "data\\others\\vox\\");
+
+            Util.ClearCache();
+
+            // DB backup (for later restore)
+            Util.DbBackup();
+
+            songList = new SongList.SongList();
+
+            try
+            {
+                songList.LoadFromKshSongs(false, false);
+            }
+            catch (Exception e)
+            {
+                Util.DbRestore();
+                return;
+            }
+        }
+
+		static SongList.SongList songList;
+
+        static List<int> deletePending = new List<int>();
+        static List<string> newPending = new List<string>();
+
+        static string statusText = "Welcome to KshToVox!";
         static string statusRText = "";
         static bool changes = false;
         static bool loading = false;
         static int selectedSongId = 0;
 
+        /*
         public static void LoadSongList(Action callbackUpdate)
         {
             if (loading) return;
@@ -72,6 +119,7 @@ namespace KshToVox.window
 
             callbackUpdate();
         }
+        */
 
         public static void SaveSongList()
 		{
@@ -80,69 +128,123 @@ namespace KshToVox.window
             songList.Save();
             SetStatus("KFC song list saved.");
         }
-        /*
-		public static void ImportSong(Action callbackUpdate)
+        
+		public static void ImportSong()
 		{
             if (loading) return;
  
 			FolderBrowserDialog folderBrowserDialog1 = new FolderBrowserDialog();
 
-			folderBrowserDialog1.Description = "Select the KFC path.";
+			folderBrowserDialog1.Description = "Select the KSH song path.";
 			folderBrowserDialog1.ShowNewFolderButton = false;
 
 			if (folderBrowserDialog1.ShowDialog() == DialogResult.OK)
 			{
-                ImportSong(folderBrowserDialog1.SelectedPath, callbackUpdate);
+                string[] paths = new string[1];
+                paths[0] = folderBrowserDialog1.SelectedPath;
+                ImportSongs(paths);
 			}
 		}
-        
-		public static void ImportSong(string path, Action callbackUpdate)
-		{
+
+        public static void ImportSongs(string[] paths)
+        {
             if (loading) return;
 
             if (!songList.Loaded())
-			{
-				SetStatus("KFC song list has not loaded!");
-				return;
-			}
+            {
+                SetStatus("KFC song list has not loaded!");
+                return;
+            }
 
-            SetStatusR("Loading...");
-
-            Thread thread = new Thread(() => ImportSong_Thread(path, callbackUpdate));
-            thread.Start();
+            foreach (string path in paths)
+            {
+                if (!newPending.Contains(path))
+                    newPending.Add(path);
+            }
         }
         
-        private static void ImportSong_Thread(string path, Action callbackUpdate)
+        
+        static void ImportSongs_Thread(string[] paths, Action callbackUpdate)
         {
             loading = true;
 
-            int newSelectedSongId = songList.AddKshSong(path, selectedSongId);
-            selectedSongId = newSelectedSongId;            
+            SetStatusR("Loading...");
+
+            List<string> newPaths = new List<string>();
+
+            foreach (string path in paths)
+            {
+                DirectoryInfo di = new DirectoryInfo(path);
+                string newPath = Util.kfcPath + "KshSongs\\" + di.Name;
+
+                if (Directory.Exists(newPath))
+                    continue;
+
+                Util.CopyDirectory(path, newPath);
+                newPaths.Add(newPath);
+            }
+
+            try
+            {
+                songList.LoadKshSongs(newPaths.ToArray());
+            }
+            catch (Exception e)
+            {
+                Util.DbRestore();
+                return;
+            }
 
             SetStatusR("");
-            SetStatus("New K-Shoot song loaded.");
+            SetStatus("New K-Shoot songs loaded.");
             changes = true;
             loading = false;
-            
+
             callbackUpdate();
         }
-        */
-        public static void DeleteSong()
+        
+
+        public static void ToggleDeleteSong()
 		{
             if (loading) return;
 
             int id = selectedSongId;
-			if (id == -1)
+			if (songList.Song(id).IsDummy())
 			{
 				SetStatus("No song selected!");
 				return;
 			}
-            changes = songList.DeleteId(id);
+
+            if (deletePending.Contains(id))
+                deletePending.Remove(id);
+            else
+                deletePending.Add(id);
 		}
+
+        public static void Update(Action callbackUpdate)
+        {
+            if (deletePending.Count > 0)
+            {
+                foreach (int id in deletePending)
+                    songList.DeleteId(id);
+                changes = true;
+            }
+
+            if (newPending.Count > 0)
+            {
+                string[] newPendingS = newPending.ToArray();
+                Task task = new Task(() => ImportSongs_Thread(newPendingS, callbackUpdate));
+                task.Start();
+            }
+
+            deletePending.Clear();
+            newPending.Clear();
+
+            callbackUpdate();
+        }
 
         public static bool CheckUnsavedB4Closing()
         {
-            if (changes) return !Ask("Discard unsaved changes?");
+            if (Pending() || changes) return !Ask("Discard unsaved changes?");
             else return false;
         }
 
@@ -167,7 +269,7 @@ namespace KshToVox.window
 
         public static string GetTitle()
         {
-            if (changes) return "KshToVox (Unsaved changes)";
+            if (Pending() || changes) return "KshToVox (Unsaved changes)";
             else return "KshToVox";
         }
 
@@ -178,13 +280,24 @@ namespace KshToVox.window
 
         public static bool Loaded() { return songList.Loaded(); }
 
-        private static void SetStatus(string text) { statusText = text; }
-        private static void SetStatusR(string text) { statusRText = text; }
+        public static bool Pending()
+        {
+            return !((deletePending.Count == 0) && (newPending.Count == 0));
+        }
 
-        private static bool Ask(string text)
+        static void SetStatus(string text) { statusText = text; }
+        static void SetStatusR(string text) { statusRText = text; }
+
+        static bool Ask(string text)
         {
             return MessageBox.Show(text, "KshToVox",
                 MessageBoxButtons.YesNo) == DialogResult.Yes;
         }
-	}
+
+        static void Warn(string text)
+        {
+            MessageBox.Show(text, "KshToVox",
+                MessageBoxButtons.OK);
+        }
+    }
 }
