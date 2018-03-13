@@ -28,6 +28,17 @@ namespace SongList
                 beat    = int.Parse(tokens[1]);
                 time    = int.Parse(tokens[2]);
             }
+            public TimePos()
+            {
+            }
+            public TimePos Clone()
+            {
+                var tp = new TimePos();
+                tp.measure = this.measure;
+                tp.beat = this.beat;
+                tp.time = this.time;
+                return tp;
+            }
             public void Print()
             {
                 Console.WriteLine("({0}, {1}, {2})", this.measure, this.beat, this.time);
@@ -497,7 +508,7 @@ namespace SongList
                         if (cL[i][BTtype] == '1')
                         {
                             isLong = false;
-                            bt.Add(new Tuple<TimePos, Bt>(index2TimePos[i], new Bt(0)));
+                            bt.Add(new Tuple<TimePos, Bt>(index2TimePos[i].Clone(), new Bt(0)));
                         }
                         else if (cL[i][BTtype] == '2')
                         {
@@ -508,7 +519,7 @@ namespace SongList
                             else
                             {
                                 isLong = true;
-                                bt.Add(new Tuple<TimePos, Bt>(index2TimePos[i], new Bt(b2bU[i2bN[i]])));
+                                bt.Add(new Tuple<TimePos, Bt>(index2TimePos[i].Clone(), new Bt(b2bU[i2bN[i]])));
                             }
                         }
                         else
@@ -541,7 +552,7 @@ namespace SongList
                         {
                             isLong = false;
                             effect = new FxEffect(FxEffect.FxType.None, "None");
-                            fx.Add(new Tuple<TimePos, Fx>(index2TimePos[i], new Fx(0, effect)));
+                            fx.Add(new Tuple<TimePos, Fx>(index2TimePos[i].Clone(), new Fx(0, effect)));
                         }
                         else if (cL[i][FXtype] == '1')
                         {
@@ -552,7 +563,7 @@ namespace SongList
                             else
                             {
                                 isLong = true;
-                                fx.Add(new Tuple<TimePos, Fx>(index2TimePos[i], new Fx(b2bU[i2bN[i]], effect)));
+                                fx.Add(new Tuple<TimePos, Fx>(index2TimePos[i].Clone(), new Fx(b2bU[i2bN[i]], effect)));
                             }
                         }
                         else
@@ -666,7 +677,7 @@ namespace SongList
                         }
                         else if (Pos.ContainsKey(cL[i][VOLtype]))
                         {
-                            vol.Add(new Tuple<TimePos, Vol>(index2TimePos[i],
+                            vol.Add(new Tuple<TimePos, Vol>(index2TimePos[i].Clone(),
                                         new Vol(Pos[cL[i][VOLtype]], 0, flt, 1)));
                             if (expand)
                                 vol[vol.Count - 1].Item2.setExpand(2);
@@ -744,7 +755,7 @@ namespace SongList
                         beat.Add(new Tuple<TimePos, Tuple<int, int>>(new TimePos("001,01,00"),
                         new Tuple<int, int>((int)(chartList[i][5] - '0'), (int)(chartList[i][7] - '0'))));
                     else
-                        beat.Add(new Tuple<TimePos, Tuple<int, int>>(index2TimePos[i],
+                        beat.Add(new Tuple<TimePos, Tuple<int, int>>(index2TimePos[i].Clone(),
                         new Tuple<int, int>((int)(chartList[i][5] - '0'), (int)(chartList[i][7] - '0'))));
                 }
             }
@@ -764,7 +775,7 @@ namespace SongList
                         bpm.Add(new Tuple<TimePos, double>(new TimePos("001,01,00"),
                             Convert.ToDouble(chartList[i].Substring(2))));
                     else
-                        bpm.Add(new Tuple<TimePos, double>(index2TimePos[i],
+                        bpm.Add(new Tuple<TimePos, double>(index2TimePos[i].Clone(),
                             Convert.ToDouble(chartList[i].Substring(2))));
                 }
             }
@@ -805,7 +816,7 @@ namespace SongList
                 {
                     CamX = Math.Round(Convert.ToDouble(chartList[i].Substring(9)) * (effectRatio), 2);
                     sp[sp.Count - 1].Item2.setEndAttribute(CamX);
-                    sp.Add(new Tuple<TimePos, Sp>(index2TimePos[i],
+                    sp.Add(new Tuple<TimePos, Sp>(index2TimePos[i].Clone(),
                                                   new Sp("CAM_RotX", 0, CamX)));
                 }
             }
@@ -835,7 +846,7 @@ namespace SongList
                 {
                     CamR = Math.Round(Convert.ToDouble(chartList[i].Substring(12)) * (-effectRatio), 2);
                     sp[sp.Count - 1].Item2.setEndAttribute(CamR);
-                    sp.Add(new Tuple<TimePos, Sp>(index2TimePos[i],
+                    sp.Add(new Tuple<TimePos, Sp>(index2TimePos[i].Clone(),
                                                   new Sp("CAM_Radi", 0, CamR)));
                 }
             }
