@@ -42,8 +42,6 @@ namespace SongList
 		{
 			Clear();
 
-			kfcPath = kfcPath_;
-
             // Parse Ifs Files (Charts, Jackets) into Cache
             // Jackets are not parsed for now, will be included in further version
             //Ifs vox01 = new Ifs(kfcPath + "\\data\\others\\vox_ifs\\vox_02.ifs", Ifs.IfsParseType.Chart);
@@ -51,7 +49,7 @@ namespace SongList
             //vox01.Close();
 
             // DB backup?
-            string dbPath = kfcPath + "\\data\\others\\music_db.xml";
+            string dbPath = Util.kfcPath + "\\data\\others\\music_db.xml";
 			if (!File.Exists(dbPath)) throw new FileNotFoundException();
 			FileStream stream = new FileStream(dbPath, FileMode.Open);
 
@@ -90,7 +88,7 @@ namespace SongList
                     chartData[dif]["limited"] = "3";
                 }
 
-				Song song = new Song(data, chartData, kfcPath, true);
+				Song song = new Song(data, chartData, Util.kfcPath, true);
 				songs[id] = song;
                 songsIdOccupied[id] = true;
 
@@ -256,7 +254,7 @@ namespace SongList
                 try
                 {
                     if (!IsUnmoddedCustom(id))
-                        song.Save(kfcPath);
+                        song.Save(Util.kfcPath);
                 }
                 catch (Exception e)
                 {
@@ -269,7 +267,7 @@ namespace SongList
 
             // Write to db
 
-            string dbPath = kfcPath + "\\data\\others\\music_db.xml";
+            string dbPath = Util.kfcPath + "data\\others\\music_db.xml";
 
             XElement root = new XElement("mdb");
             XDocument xmlFile = new XDocument(
@@ -449,7 +447,6 @@ namespace SongList
 
         private volatile Song[] songs;
         private bool[] songsIdOccupied;
-        private string kfcPath;
 		private bool loaded = false;
 
         private Dictionary<string, string> typeAttr = new Dictionary<string, string>();
