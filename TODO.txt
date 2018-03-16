@@ -11,8 +11,6 @@ Vox versions handle.
 
 End Pos = Last Measure + 2
 
-sox/2dxConvert (tools) exe/dll pack
-
 selfmade & original chart grouping
 
 Exceptions
@@ -44,17 +42,11 @@ corrupted vox detect
 
 song save exception
 
-readme
-
 *ifs corrupts when broken image is packed inside
 
 .NET 4.7.1
 
- data\others\vox
-
  ksh difficulty hit
-
- sound remaster
 
  search for different beat type
 
@@ -71,3 +63,21 @@ readme
  view pending
 
  pending exceptions
+
+ music preview: remove old files
+
+ ClickOnce App deplotment
+
+ better caching
+
+ Hashing
+
+ Song/SongList class refactor
+
+ git branch organize
+
+ KshToVox init 
+
+ show pic in form
+
+ Util: file operation interface

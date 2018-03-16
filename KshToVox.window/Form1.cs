@@ -19,20 +19,37 @@ namespace KshToVox.window
 		public Form()
 		{
 			InitializeComponent();
-            foreach (var item in Program.GetSongList())
-                SongListTextBox.Items.Add(item);
+            dataGridView1.DataSource = Program.GetSongsInfo();
+
+            dataGridView1.Columns[0].Width = 30;
+            dataGridView1.Columns[1].Width = 45;
+            dataGridView1.Columns[2].Width = 155;
         }
 
-		private void UpdateView()
+        private void PreUpdateView()
+        {
+            if (dataGridView1.SelectedRows.Count == 1)
+                Program.RecordSelectedIndex(dataGridView1.SelectedRows[0].Index);
+        }
+
+        private void UpdateView()
 		{
             this.Invoke((MethodInvoker)delegate
             {
-                for (int i = 0; i < SongListTextBox.Items.Count; ++i)
-                {
-                    SongListTextBox.Items[i] = Program.GetSongListId(i + 1);
-                }
-                
-                SongListTextBox.SelectedIndex = Program.GetSelectedIndex() - 1;
+                //int newSelId = Program.GetSelectedIndex();
+                dataGridView1.DataSource = null;
+                dataGridView1.DataSource = Program.GetSongsInfo();
+
+                dataGridView1.Columns[0].Width = 30;
+                dataGridView1.Columns[1].Width = 45;
+                dataGridView1.Columns[2].Width = 155;
+
+                int id = Program.GetSelectedIndex();
+
+                dataGridView1.ClearSelection();
+
+                if (id >= 0)
+                    dataGridView1.Rows[id].Selected = true;
 
                 UpdateViewStatic();
             });
@@ -53,7 +70,7 @@ namespace KshToVox.window
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
 		{
 			Program.SaveSongList();
-			UpdateView();
+            UpdateViewStatic();
 		}
 
         /*
@@ -89,41 +106,17 @@ namespace KshToVox.window
 			string[] folders = (string[])e.Data.GetData(DataFormats.FileDrop);
 			//if (!((folders.Length == 1) && (Directory.Exists(folders[0])))) return;
 
-            foreach (string folder in folders)
-                if (!Directory.Exists(folder)) return;
-
-            Program.ImportSongs(folders);
-			UpdateView();
-            
+            PreUpdateView();
+            Program.ToggleImportSongs(folders);
+			UpdateViewStatic();
 		}
 
 		private void button2_Click(object sender, EventArgs e)
 		{
-			Program.ToggleDeleteSong();
+            PreUpdateView();
+            Program.ToggleDeleteSong();
 			UpdateView();
 		}
-
-        private void SongListTextBox_MouseClick(object sender, MouseEventArgs e)
-        {	
-            if (SongListTextBox.SelectedItem != null)
-            { 
-                KeyValuePair<int, Song> songId = (KeyValuePair<int, Song>)SongListTextBox.SelectedItem;
-                Program.UpdateSeletedSongId(songId.Key);
-
-            }
-            UpdateViewStatic();
-        }
-
-        private void SongListTextBox_MouseLeave(object sender, EventArgs e)
-        {
-            if (SongListTextBox.SelectedItem != null)
-            {
-                KeyValuePair<int, Song> songId = (KeyValuePair<int, Song>)SongListTextBox.SelectedItem;
-                Program.UpdateSeletedSongId(songId.Key);
-
-            }
-            UpdateViewStatic();
-        }
 
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
@@ -137,7 +130,20 @@ namespace KshToVox.window
 
         private void button1_Click(object sender, EventArgs e)
         {
+            PreUpdateView();
             Program.Update(UpdateView);
+        }
+
+        private void dataGridView1_MouseClick(object sender, MouseEventArgs e)
+        {
+            PreUpdateView();
+            UpdateViewStatic();
+        }
+
+        private void dataGridView1_MouseLeave(object sender, EventArgs e)
+        {
+            PreUpdateView();
+            UpdateViewStatic();
         }
     }
 }

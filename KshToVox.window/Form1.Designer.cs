@@ -34,9 +34,10 @@
             this.importkshToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.SongListTextBox = new System.Windows.Forms.ListBox();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.dataGridView1 = new System.Windows.Forms.DataGridView();
             this.splitContainer2 = new System.Windows.Forms.SplitContainer();
+            this.button1 = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.label_artist = new System.Windows.Forms.Label();
@@ -45,12 +46,12 @@
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabel2 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabel3 = new System.Windows.Forms.ToolStripStatusLabel();
-            this.button1 = new System.Windows.Forms.Button();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).BeginInit();
             this.splitContainer2.Panel1.SuspendLayout();
             this.splitContainer2.Panel2.SuspendLayout();
@@ -107,17 +108,6 @@
             this.aboutToolStripMenuItem.Size = new System.Drawing.Size(118, 22);
             this.aboutToolStripMenuItem.Text = "About...";
             // 
-            // SongListTextBox
-            // 
-            this.SongListTextBox.FormattingEnabled = true;
-            this.SongListTextBox.ItemHeight = 12;
-            this.SongListTextBox.Location = new System.Drawing.Point(3, 3);
-            this.SongListTextBox.Name = "SongListTextBox";
-            this.SongListTextBox.Size = new System.Drawing.Size(224, 292);
-            this.SongListTextBox.TabIndex = 1;
-            this.SongListTextBox.MouseClick += new System.Windows.Forms.MouseEventHandler(this.SongListTextBox_MouseClick);
-            this.SongListTextBox.MouseLeave += new System.EventHandler(this.SongListTextBox_MouseLeave);
-            // 
             // splitContainer1
             // 
             this.splitContainer1.IsSplitterFixed = true;
@@ -127,7 +117,7 @@
             // splitContainer1.Panel1
             // 
             this.splitContainer1.Panel1.AllowDrop = true;
-            this.splitContainer1.Panel1.Controls.Add(this.SongListTextBox);
+            this.splitContainer1.Panel1.Controls.Add(this.dataGridView1);
             // 
             // splitContainer1.Panel2
             // 
@@ -135,6 +125,30 @@
             this.splitContainer1.Size = new System.Drawing.Size(679, 304);
             this.splitContainer1.SplitterDistance = 230;
             this.splitContainer1.TabIndex = 2;
+            // 
+            // dataGridView1
+            // 
+            this.dataGridView1.AllowUserToAddRows = false;
+            this.dataGridView1.AllowUserToDeleteRows = false;
+            this.dataGridView1.AllowUserToResizeColumns = false;
+            this.dataGridView1.AllowUserToResizeRows = false;
+            this.dataGridView1.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCellsExceptHeaders;
+            this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dataGridView1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.dataGridView1.Location = new System.Drawing.Point(0, 0);
+            this.dataGridView1.Margin = new System.Windows.Forms.Padding(0);
+            this.dataGridView1.MultiSelect = false;
+            this.dataGridView1.Name = "dataGridView1";
+            this.dataGridView1.ReadOnly = true;
+            this.dataGridView1.RowHeadersVisible = false;
+            this.dataGridView1.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.DisableResizing;
+            this.dataGridView1.RowTemplate.Height = 24;
+            this.dataGridView1.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.dataGridView1.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
+            this.dataGridView1.Size = new System.Drawing.Size(230, 304);
+            this.dataGridView1.TabIndex = 2;
+            this.dataGridView1.MouseClick += new System.Windows.Forms.MouseEventHandler(this.dataGridView1_MouseClick);
+            this.dataGridView1.MouseLeave += new System.EventHandler(this.dataGridView1_MouseLeave);
             // 
             // splitContainer2
             // 
@@ -158,6 +172,16 @@
             this.splitContainer2.Size = new System.Drawing.Size(445, 304);
             this.splitContainer2.SplitterDistance = 109;
             this.splitContainer2.TabIndex = 0;
+            // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(2, 122);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(104, 61);
+            this.button1.TabIndex = 2;
+            this.button1.Text = "Update";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
             // button2
             // 
@@ -223,16 +247,6 @@
             this.toolStripStatusLabel3.Name = "toolStripStatusLabel3";
             this.toolStripStatusLabel3.Size = new System.Drawing.Size(0, 17);
             // 
-            // button1
-            // 
-            this.button1.Location = new System.Drawing.Point(2, 122);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(104, 61);
-            this.button1.TabIndex = 2;
-            this.button1.Text = "Update";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
-            // 
             // Form
             // 
             this.AllowDrop = true;
@@ -253,6 +267,7 @@
             this.splitContainer1.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
             this.splitContainer2.Panel1.ResumeLayout(false);
             this.splitContainer2.Panel2.ResumeLayout(false);
             this.splitContainer2.Panel2.PerformLayout();
@@ -271,7 +286,6 @@
 		private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem saveToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem importkshToolStripMenuItem;
-		private System.Windows.Forms.ListBox SongListTextBox;
 		private System.Windows.Forms.SplitContainer splitContainer1;
 		private System.Windows.Forms.StatusStrip statusStrip1;
 		private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
@@ -285,6 +299,7 @@
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel2;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel3;
         private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.DataGridView dataGridView1;
     }
 }
 

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
+using System.Data;
 using System.IO;
 using System.Threading;
 
@@ -142,11 +143,11 @@ namespace KshToVox.window
 			{
                 string[] paths = new string[1];
                 paths[0] = folderBrowserDialog1.SelectedPath;
-                ImportSongs(paths);
+                ToggleImportSongs(paths);
 			}
 		}
 
-        public static void ImportSongs(string[] paths)
+        public static void ToggleImportSongs(string[] paths)
         {
             if (loading) return;
 
@@ -158,6 +159,8 @@ namespace KshToVox.window
 
             foreach (string path in paths)
             {
+                if (!Directory.Exists(path))
+                    continue;
                 if (!newPending.Contains(path))
                     newPending.Add(path);
             }
@@ -207,6 +210,7 @@ namespace KshToVox.window
 		{
             if (loading) return;
 
+            //int id = SelectingId();
             int id = selectedSongId;
 			if (songList.Song(id).IsDummy())
 			{
@@ -248,10 +252,44 @@ namespace KshToVox.window
             else return false;
         }
 
-        public static List<KeyValuePair<int, Song>> GetSongList() {	return songList.List();	}
+        public static DataTable GetSongsInfo()
+        {
+            DataTable table = new DataTable();
+            table.Columns.Add(new DataColumn("Id", Type.GetType("System.Int32")));
+            table.Columns.Add(new DataColumn("State"));
+            table.Columns.Add(new DataColumn("Song"));
+
+            foreach (KeyValuePair<int, Song> song in songList.List())
+                if (!song.Value.IsDummy())
+                { 
+                    DataRow row = table.NewRow();
+                    row["Id"] = song.Key;
+                    row["Song"] = song.Value;
+                    if (deletePending.Contains(song.Key))
+                        row["State"] = "Delete";
+
+                    table.Rows.Add(row);
+                }
+
+            return table;
+        }
         public static KeyValuePair<int, Song> GetSongListId(int id) { return new KeyValuePair<int, Song>(id, songList.Song(id)); }
 
-        public static int GetSelectedIndex() { return selectedSongId; }
+        public static void RecordSelectedIndex(int i)
+        {
+            DataTable table = GetSongsInfo();
+            selectedSongId = (int)table.Rows[i]["Id"];
+        }
+
+        public static int GetSelectedIndex()
+        {
+            DataTable table = GetSongsInfo();
+            
+            for (int i = 0; i < table.Rows.Count; ++i)
+                if ((int)table.Rows[i]["Id"] == selectedSongId)
+                    return i;
+            return -1;
+        }
 
 		public static Dictionary<string, string> GetLabels()
 		{
@@ -272,8 +310,6 @@ namespace KshToVox.window
             if (Pending() || changes) return "KshToVox (Unsaved changes)";
             else return "KshToVox";
         }
-
-        public static void UpdateSeletedSongId(int id) { selectedSongId = id; }
 
         public static string GetStatus() { return statusText; }
         public static string GetStatusR() { return statusRText; }

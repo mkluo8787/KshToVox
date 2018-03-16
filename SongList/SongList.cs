@@ -15,6 +15,19 @@ namespace SongList
 {
 	public class SongList
 	{
+        struct SongInfo
+        {
+            enum State
+            {
+                Normal,
+                New,
+                Delete,
+                Error
+            }
+            Song song;
+            State state;
+        }
+
         private readonly static int listSize = 1061;
 		public readonly static string[] DIFS = { "novice", "advanced", "exhaust", "infinite" };
 
@@ -199,7 +212,6 @@ namespace SongList
                 tasks.Add(kshSong.Name, task);
             }
             
-            //foreach (Task task in tasks)
             foreach (KeyValuePair<string, Task> task in tasks)
                 try
                 {
