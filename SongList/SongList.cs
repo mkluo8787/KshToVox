@@ -15,7 +15,7 @@ namespace SongList
 {
 	public class SongList
 	{
-        struct SongInfo
+     /*   struct SongInfo
         {
             enum State
             {
@@ -27,7 +27,7 @@ namespace SongList
             Song song;
             State state;
         }
-
+        */
         private readonly static int listSize = 1061;
 		public readonly static string[] DIFS = { "novice", "advanced", "exhaust", "infinite" };
 
@@ -156,12 +156,7 @@ namespace SongList
                             disb.Add(existDi.FullName, true);
 
                         if (!disb.ContainsKey(di.FullName)) // Ksh Folder removed!
-                        {
-                            DeleteId(id);
-                            lastModifiedFolder.Remove(id);
-                            kshPathToId.Remove(di.FullName);
-                            songsIdOccupied[id] = false;
-                        }
+                            Delete(id);
                     }
                 }
             }
@@ -436,6 +431,18 @@ namespace SongList
 				list.Add(new KeyValuePair<int, Song>(id, songs[id]));
 			return list;
 		}
+
+        public void Delete(int id)
+        {
+            DirectoryInfo di = new DirectoryInfo(songs[id].Data("kshFolder"));
+
+            DeleteId(id);
+            lastModifiedFolder.Remove(id);
+            kshPathToId.Remove(di.FullName);
+            songsIdOccupied[id] = false;
+
+            Directory.Delete(di.FullName, true);
+        }
 
         public static string GetCachePath() { return Util.cachePath; }
 

@@ -81,3 +81,5 @@ song save exception
  show pic in form
 
  Util: file operation interface
+
+ integrate sharpupdate

@@ -125,6 +125,7 @@ namespace KshToVox.window
         public static void SaveSongList()
 		{
             if (loading) return;
+
             changes = false;
             songList.Save();
             SetStatus("KFC song list saved.");
@@ -187,15 +188,10 @@ namespace KshToVox.window
                 newPaths.Add(newPath);
             }
 
-            try
-            {
-                songList.LoadKshSongs(newPaths.ToArray());
-            }
-            catch (Exception e)
-            {
-                Util.DbRestore();
-                return;
-            }
+            callbackUpdate();
+
+            songList.LoadKshSongs(newPaths.ToArray());
+
 
             SetStatusR("");
             SetStatus("New K-Shoot songs loaded.");
@@ -226,10 +222,12 @@ namespace KshToVox.window
 
         public static void Update(Action callbackUpdate)
         {
+            if (loading) return;
+
             if (deletePending.Count > 0)
             {
                 foreach (int id in deletePending)
-                    songList.DeleteId(id);
+                    songList.Delete(id);
                 changes = true;
             }
 
