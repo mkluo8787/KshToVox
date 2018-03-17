@@ -273,20 +273,16 @@ namespace KshToVox.window
         }
         public static KeyValuePair<int, Song> GetSongListId(int id) { return new KeyValuePair<int, Song>(id, songList.Song(id)); }
 
-        public static void RecordSelectedIndex(int i)
+        public static void RecordSelectedIndex(int id)
         {
-            DataTable table = GetSongsInfo();
-            selectedSongId = (int)table.Rows[i]["Id"];
+            //DataTable table = GetSongsInfo();
+            //selectedSongId = (int)table.Rows[i]["Id"];
+            selectedSongId = id;
         }
 
         public static int GetSelectedIndex()
         {
-            DataTable table = GetSongsInfo();
-            
-            for (int i = 0; i < table.Rows.Count; ++i)
-                if ((int)table.Rows[i]["Id"] == selectedSongId)
-                    return i;
-            return -1;
+            return selectedSongId;
         }
 
 		public static Dictionary<string, string> GetLabels()

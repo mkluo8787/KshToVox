@@ -147,8 +147,8 @@
             this.dataGridView1.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
             this.dataGridView1.Size = new System.Drawing.Size(230, 304);
             this.dataGridView1.TabIndex = 2;
+            this.dataGridView1.Sorted += new System.EventHandler(this.dataGridView1_Sorted);
             this.dataGridView1.MouseClick += new System.Windows.Forms.MouseEventHandler(this.dataGridView1_MouseClick);
-            this.dataGridView1.MouseLeave += new System.EventHandler(this.dataGridView1_MouseLeave);
             // 
             // splitContainer2
             // 

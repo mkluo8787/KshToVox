@@ -29,7 +29,8 @@ namespace KshToVox.window
         private void PreUpdateView()
         {
             if (dataGridView1.SelectedRows.Count == 1)
-                Program.RecordSelectedIndex(dataGridView1.SelectedRows[0].Index);
+                //Program.RecordSelectedIndex(dataGridView1.SelectedRows[0].Index);
+                Program.RecordSelectedIndex((int)dataGridView1.SelectedRows[0].Cells[0].Value);
         }
 
         private void UpdateView()
@@ -44,19 +45,19 @@ namespace KshToVox.window
                 dataGridView1.Columns[1].Width = 45;
                 dataGridView1.Columns[2].Width = 155;
 
-                int id = Program.GetSelectedIndex();
-
-                dataGridView1.ClearSelection();
-
-                if (id >= 0)
-                    dataGridView1.Rows[id].Selected = true;
-
                 UpdateViewStatic();
             });
 		}
 
 		private void UpdateViewStatic()
 		{
+            int id = Program.GetSelectedIndex();
+            dataGridView1.ClearSelection();
+            if (id >= 0)
+                foreach (DataGridViewRow row in dataGridView1.Rows)
+                    if ((int)row.Cells[0].Value == id)
+                        row.Selected = true;
+
             Text = Program.GetTitle();
 
 			Dictionary<string, string> labels = Program.GetLabels();
@@ -140,9 +141,8 @@ namespace KshToVox.window
             UpdateViewStatic();
         }
 
-        private void dataGridView1_MouseLeave(object sender, EventArgs e)
+        private void dataGridView1_Sorted(object sender, EventArgs e)
         {
-            PreUpdateView();
             UpdateViewStatic();
         }
     }

@@ -11,9 +11,10 @@ namespace Utility
 {
     public static class Util
     {
-        readonly public static string binPath = System.IO.Path.GetDirectoryName(
-            System.Reflection.Assembly.GetExecutingAssembly().Location
-            ) + "\\";
+        //readonly public static string binPath = System.IO.Path.GetDirectoryName(
+        //    System.Reflection.Assembly.GetExecutingAssembly().Location
+        //    ) + "\\";
+        readonly public static string binPath = Directory.GetCurrentDirectory() + "\\";
         public static string kfcPath = binPath; // Default KFC path.
         readonly public static string toolsPath = binPath + @"tools\";
         readonly public static string cachePath = binPath + @"cache\";
