@@ -161,6 +161,11 @@ namespace KshToVox.window
             if (e.Data.GetDataPresent(DataFormats.FileDrop)) e.Effect = DragDropEffects.Copy;
         }
 
+        private void checkUpdateToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            updater.DoUpdate();
+        }
+
         #endregion
 
         #region Controller
@@ -484,7 +489,7 @@ namespace KshToVox.window
 
         public Uri UpdateXmlLocation
         {
-            get { return new Uri("https://raw.githubusercontent.com/henryxrl/SharpUpdate/master/project.xml"); }
+            get { return new Uri("https://github.com/MKLUO/KshToVox/raw/master/KshToVox_Update.xml"); }
         }
 
         public Form Context
@@ -492,5 +497,6 @@ namespace KshToVox.window
             get { return this; }
         }
         #endregion
+
     }
 }
