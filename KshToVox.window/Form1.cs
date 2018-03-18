@@ -24,9 +24,6 @@ namespace KshToVox.window
 
         public Form1()
 		{
-            //TEST
-            Util.SetKfcPath(@"E:\CHIKAN\ks_to_SDVX\Minimal SDVX HH for FX testing");
-
             Controller.Init();            
 
             InitializeComponent();
