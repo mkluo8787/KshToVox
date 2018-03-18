@@ -469,12 +469,12 @@ namespace KshToVox.window
         #region SharpUpdate
         public string ApplicationName
         {
-            get { return "KshToVox"; }
+            get { return "KshToVox.window"; }
         }
 
         public string ApplicationID
         {
-            get { return "KshToVox"; }
+            get { return "KshToVox.window"; }
         }
 
         public Assembly ApplicationAssembly
