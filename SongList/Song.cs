@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using System.IO;
+using System.Drawing;
 using System.Threading;
 using System.Text.RegularExpressions;
 
@@ -297,6 +298,18 @@ namespace SongList
             loaded = true;
         }
 
+        public void LoadImageFromKsh()
+        {
+            string[] kshFiles = Directory.GetFiles(data["kshFolder"], "*.ksh");
+            FileStream fs = new FileStream(kshFiles[0], FileMode.Open);
+            (Dictionary<string, string> kshInfoParse, List<string> _) = ParseKshInfo(fs);
+
+            fs.Close();
+
+            string imagePath = data["kshFolder"] + "\\" + kshInfoParse["jacket"];
+            image = new KshImage(imagePath);
+        }
+
         // Write to Vox and 2dx
         public void Save(string kfcPath)
         {
@@ -343,6 +356,13 @@ namespace SongList
 
                 osstream.Close();
             }
+
+            string[] oldPreFiles = Directory.GetFiles(kfcPath + "\\data\\sound\\preview\\", BaseNamePre() + "*.2dx");
+            foreach (string oldPreFile in oldPreFiles)
+            {
+                File.Delete(oldPreFile);
+            }
+
 
             foreach (KeyValuePair<string, Tuple<string, string>> sc in preSoundCaches)
             {
@@ -543,6 +563,11 @@ namespace SongList
 
 			return (data, chart);
 		}
+
+        public Image Image()
+        {
+            return image.Image();
+        }
 
         // Override
         public override string ToString()

@@ -20,6 +20,12 @@ namespace SongList
             this.path = path;
         }
 
+        public Image Image()
+        {
+            using (Bitmap oriPic = new Bitmap(path))
+                return new Bitmap(oriPic);
+        }
+
         public void ToTga(string outputPath, int pixel)
         {
             FileInfo fi = new FileInfo(path);

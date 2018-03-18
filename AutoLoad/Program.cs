@@ -79,14 +79,18 @@ namespace AutoLoad
             // DB backup (for later restore)
             Util.DbBackup();
 
+            if (forceMeta)
+                File.Delete(Util.kfcPath + "data\\others\\meta_usedId.xml");
+
             SongList.SongList songList = new SongList.SongList();
 
             Util.ConsoleWrite("Loading from KshSongs...");
-
             try
             {
-                songList.LoadFromKshSongs(  forceReload,
-                                            forceMeta);
+                if (!forceReload)
+                    songList.LoadFromDB();
+
+                songList.LoadFromKshSongs();
             }
             catch (Exception e)
             {

@@ -42,8 +42,13 @@ namespace SongList
                 songs[id] = new Song();
                 songsIdOccupied[id] = false;
             }
-            Directory.CreateDirectory(Util.cachePath);
-		}
+
+            MetaInfo metaDb = new MetaInfo();
+
+            this.typeAttr = metaDb.TypeAttr();
+            this.idToIfs = metaDb.IdToIfs();
+            this.idToVer = metaDb.IdToVer();
+        }
 
 		~SongList()
 		{
@@ -51,19 +56,15 @@ namespace SongList
 		}
 
 		// From KFC
-		public void Load(string kfcPath_)
+		public void LoadFromDB()
 		{
 			Clear();
 
-            // Parse Ifs Files (Charts, Jackets) into Cache
-            // Jackets are not parsed for now, will be included in further version
-            //Ifs vox01 = new Ifs(kfcPath + "\\data\\others\\vox_ifs\\vox_02.ifs", Ifs.IfsParseType.Chart);
-            //vox01.Cache(cachePath);
-            //vox01.Close();
-
             // DB backup?
             string dbPath = Util.kfcPath + "\\data\\others\\music_db.xml";
-			if (!File.Exists(dbPath)) throw new FileNotFoundException();
+			if (!File.Exists(dbPath))
+                return;
+
 			FileStream stream = new FileStream(dbPath, FileMode.Open);
 
 			XElement root = XElement.Load(stream);
@@ -102,8 +103,8 @@ namespace SongList
                 }
 
 				Song song = new Song(data, chartData, Util.kfcPath, true);
-				songs[id] = song;
-                songsIdOccupied[id] = true;
+                Add(id, song);
+				
 
                 // Caching imformation
                 if (data["custom"] == "1")
@@ -111,9 +112,8 @@ namespace SongList
                     kshPathToId[data["kshFolder"]] = id;
 
                     lastModifiedFolder[id] = data["lastModFolder"];
-                    //lastModifiedChart[id] = data["lastModChart"];
-                    //lastModifiedPic[id] = data["lastModPic"];
-                    //lastModifiedSound[id] = data["lastModSound"];
+
+                    songs[id].LoadImageFromKsh();
                 }
             }
 
@@ -122,44 +122,10 @@ namespace SongList
 			loaded = true;
 		}
 
-        public void LoadFromKshSongs(bool forceReload, bool forceMeta)
+        public void LoadFromKshSongs()
         {
-            Clear();
-
-            if (forceMeta)
-                File.Delete(Util.kfcPath + "data\\others\\meta_usedId.xml");
-
-            MetaInfo metaDb = new MetaInfo();
-
-            this.typeAttr = metaDb.TypeAttr();
-            this.idToIfs = metaDb.IdToIfs();
-            this.idToVer = metaDb.IdToVer();
-
             string kshFolderPath = Util.kfcPath + "KshSongs\\";
             DirectoryInfo kshFolder = new DirectoryInfo(kshFolderPath);
-
-            if (!(metaDb.FirstLoad() || forceReload))
-            {
-                Load(Util.kfcPath);
-
-                // Check for oldid existance
-
-                for (int id = 0; id < listSize; ++id)
-                {
-                    if (songs[id].Data("custom") == "1")
-                    {
-                        DirectoryInfo di = new DirectoryInfo(songs[id].Data("kshFolder"));
-                        DirectoryInfo[] dis = kshFolder.GetDirectories();
-                        Dictionary<string, bool> disb = new Dictionary<string, bool>();
-
-                        foreach (DirectoryInfo existDi in dis)
-                            disb.Add(existDi.FullName, true);
-
-                        if (!disb.ContainsKey(di.FullName)) // Ksh Folder removed!
-                            Delete(id);
-                    }
-                }
-            }
 
             List<string> kshPaths = new List<string>();
             foreach (DirectoryInfo kshSong in kshFolder.GetDirectories())
@@ -441,7 +407,12 @@ namespace SongList
             kshPathToId.Remove(di.FullName);
             songsIdOccupied[id] = false;
 
-            Directory.Delete(di.FullName, true);
+            //Directory.Delete(di.FullName, true);
+        }
+        public void Add(int id, Song song)
+        {
+            songs[id] = song;
+            songsIdOccupied[id] = true;
         }
 
         public static string GetCachePath() { return Util.cachePath; }

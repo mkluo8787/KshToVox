@@ -173,6 +173,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\SharpUpdate\SharpUpdate.csproj">
+      <Project>{811c1d69-764f-4335-8363-b93a1d106268}</Project>
+      <Name>SharpUpdate</Name>
+    </ProjectReference>
     <ProjectReference Include="..\SongList\SongList.csproj">
       <Project>{8ea42a3b-39ac-4347-a930-d6f7a7b28576}</Project>
       <Name>SongList</Name>

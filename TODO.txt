@@ -83,3 +83,5 @@ song save exception
  Util: file operation interface
 
  integrate sharpupdate
+
+ KshSongs/Song db empty exception
