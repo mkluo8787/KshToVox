@@ -24,7 +24,7 @@ namespace KshToVox.window
 
         public Form1()
 		{
-            Controller.Init();            
+            Controller.Init();
 
             InitializeComponent();
 
@@ -173,11 +173,8 @@ namespace KshToVox.window
             {
                 // Check if kfc dll exists.
                 if (!File.Exists(Util.kfcPath + "soundvoltex.dll"))
-                {
-                    //Console.WriteLine("soundvoltex.dll not found! Please choose a valid KFC path.");
-                    //Console.ReadKey();
-                    return;
-                }
+                    throw new Exception();
+                
 
                 // Check if folders exist.
                 if (!Directory.Exists(Util.kfcPath + "KshSongs\\"))
