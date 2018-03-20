@@ -34,6 +34,7 @@
             this.importkshToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.checkUpdateToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.splitContainer3 = new System.Windows.Forms.SplitContainer();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
@@ -50,7 +51,6 @@
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabel2 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabel3 = new System.Windows.Forms.ToolStripStatusLabel();
-            this.checkUpdateToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -93,15 +93,16 @@
             // saveToolStripMenuItem
             // 
             this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
-            this.saveToolStripMenuItem.Size = new System.Drawing.Size(145, 22);
+            this.saveToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S)));
+            this.saveToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.saveToolStripMenuItem.Text = "Save";
             this.saveToolStripMenuItem.Click += new System.EventHandler(this.saveToolStripMenuItem_Click);
             // 
             // importkshToolStripMenuItem
             // 
-            this.importkshToolStripMenuItem.Enabled = false;
             this.importkshToolStripMenuItem.Name = "importkshToolStripMenuItem";
-            this.importkshToolStripMenuItem.Size = new System.Drawing.Size(145, 22);
+            this.importkshToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.A)));
+            this.importkshToolStripMenuItem.Size = new System.Drawing.Size(188, 22);
             this.importkshToolStripMenuItem.Text = "Import .ksh...";
             this.importkshToolStripMenuItem.Click += new System.EventHandler(this.importkshToolStripMenuItem_Click);
             // 
@@ -117,8 +118,15 @@
             // aboutToolStripMenuItem
             // 
             this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
             this.aboutToolStripMenuItem.Text = "About...";
+            // 
+            // checkUpdateToolStripMenuItem
+            // 
+            this.checkUpdateToolStripMenuItem.Name = "checkUpdateToolStripMenuItem";
+            this.checkUpdateToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
+            this.checkUpdateToolStripMenuItem.Text = "Check Update";
+            this.checkUpdateToolStripMenuItem.Click += new System.EventHandler(this.checkUpdateToolStripMenuItem_Click);
             // 
             // splitContainer1
             // 
@@ -209,7 +217,7 @@
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(52, 52);
             this.button1.TabIndex = 2;
-            this.button1.Text = "Apply Change";
+            this.button1.Text = "Save";
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
@@ -322,13 +330,6 @@
             // 
             this.toolStripStatusLabel3.Name = "toolStripStatusLabel3";
             this.toolStripStatusLabel3.Size = new System.Drawing.Size(0, 17);
-            // 
-            // checkUpdateToolStripMenuItem
-            // 
-            this.checkUpdateToolStripMenuItem.Name = "checkUpdateToolStripMenuItem";
-            this.checkUpdateToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.checkUpdateToolStripMenuItem.Text = "Check Update";
-            this.checkUpdateToolStripMenuItem.Click += new System.EventHandler(this.checkUpdateToolStripMenuItem_Click);
             // 
             // Form1
             // 

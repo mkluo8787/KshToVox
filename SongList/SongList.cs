@@ -150,7 +150,7 @@ namespace SongList
 
                 DirectoryInfo kshSong = new DirectoryInfo(kshPath);
 
-                if (kshSong.GetFiles("*.ksh").Length == 0)
+                if (!Util.IsValidKshPath(kshPath))
                     //throw new Exception("Invalid folder in KshSongs!");
                     continue;
 

@@ -13,6 +13,8 @@ using System.IO;
 using Utility;
 using SongList;
 
+using Microsoft.WindowsAPICodePack.Dialogs;
+
 using SharpUpdate;
 using System.Reflection;
 
@@ -24,10 +26,7 @@ namespace KshToVox.window
 
         public Form1()
 		{
-            //TEST
-            Util.SetKfcPath(@"E:\CHIKAN\ks_to_SDVX\Minimal SDVX HH for FX testing");
-
-            Controller.Init();            
+            Controller.Init();
 
             InitializeComponent();
 
@@ -95,8 +94,9 @@ namespace KshToVox.window
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
 		{
-            Controller.SaveSongList();
-            UpdateViewStatic();
+            //Controller.SaveSongList();
+            PreUpdateView();
+            Controller.Update(UpdateViewInvoke);
 		}
 
 		private void button2_Click(object sender, EventArgs e)
@@ -113,7 +113,9 @@ namespace KshToVox.window
 
         private void importkshToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Controller.ImportSong();
+            PreUpdateView();
+            Controller.ToggleImportSongsFormFolder();
+            UpdateView();
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -176,11 +178,8 @@ namespace KshToVox.window
             {
                 // Check if kfc dll exists.
                 if (!File.Exists(Util.kfcPath + "soundvoltex.dll"))
-                {
-                    //Console.WriteLine("soundvoltex.dll not found! Please choose a valid KFC path.");
-                    //Console.ReadKey();
-                    return;
-                }
+                    throw new Exception();
+                
 
                 // Check if folders exist.
                 if (!Directory.Exists(Util.kfcPath + "KshSongs\\"))
@@ -228,20 +227,28 @@ namespace KshToVox.window
                 SetStatus("KFC song list saved.");
             }
 
-            public static void ImportSong()
+            public static void ToggleImportSongsFormFolder()
             {
                 if (loading) return;
 
-                FolderBrowserDialog folderBrowserDialog1 = new FolderBrowserDialog();
+                CommonOpenFileDialog folderBrowserDialog1 = new CommonOpenFileDialog { IsFolderPicker = true };
 
-                folderBrowserDialog1.Description = "Select the KSH song path.";
-                folderBrowserDialog1.ShowNewFolderButton = false;
+                folderBrowserDialog1.Title = "Select the KSH song path.";
 
-                if (folderBrowserDialog1.ShowDialog() == DialogResult.OK)
+                if (folderBrowserDialog1.ShowDialog() == CommonFileDialogResult.Ok)
                 {
-                    string[] paths = new string[1];
-                    paths[0] = folderBrowserDialog1.SelectedPath;
-                    ToggleImportSongs(paths);
+                    string kshFolderPath = folderBrowserDialog1.FileName;
+                    DirectoryInfo kshFolder = new DirectoryInfo(kshFolderPath);
+
+                    List<string> kshPaths = new List<string>();
+
+                    if (Util.IsValidKshPath(kshFolderPath))
+                        kshPaths.Add(kshFolderPath);
+                    else
+                        foreach (DirectoryInfo kshSong in kshFolder.GetDirectories())
+                            kshPaths.Add(kshSong.FullName);
+
+                    ToggleImportSongs(kshPaths.ToArray());
                 }
             }
 
@@ -295,6 +302,8 @@ namespace KshToVox.window
                 changes = true;
                 loading = false;
 
+                SaveSongList();
+
                 callbackUpdate();
             }
 
@@ -329,18 +338,19 @@ namespace KshToVox.window
                     foreach (int id in deletePending)
                         songList.Delete(id);
                     changes = true;
+
+                    deletePending.Clear();
+                    SaveSongList();
                 }
 
                 if (newPending.Count > 0)
                 {
                     string[] newPendingS = newPending.ToArray();
+                    newPending.Clear();
                     Task task = new Task(() => ImportSongs_Thread(newPendingS, callbackUpdate));
                     task.Start();
                 }
-
-                deletePending.Clear();
-                newPending.Clear();
-
+                
                 callbackUpdate();
             }
 

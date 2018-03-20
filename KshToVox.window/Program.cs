@@ -12,6 +12,7 @@ using System.Threading;
 using Utility;
 using SongList;
 
+using NDesk.Options;
 
 namespace KshToVox.window
 {
@@ -22,8 +23,25 @@ namespace KshToVox.window
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
-        static void Main()
+        static void Main(string[] args)
         {
+            OptionSet p = new OptionSet() {
+                { "p|path=", "The {PATH} of KFC directory.",
+                   v => Util.SetKfcPath(v) },
+            };
+
+            List<string> extra;
+            try
+            {
+                extra = p.Parse(args);
+            }
+            catch (OptionException e)
+            {
+                Console.Write("KshToVox: ");
+                Console.WriteLine(e.Message);
+                return;
+            }
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new Form1());
