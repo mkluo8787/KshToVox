@@ -120,6 +120,12 @@ namespace Utility
             kfcPath = newPath;
         }
 
+        public static bool IsValidKshPath(string path)
+        {
+            DirectoryInfo kshSong = new DirectoryInfo(path);
+            return (kshSong.GetFiles("*.ksh").Length != 0);
+        }
+
         public static void Execute(string exe, string arg, string directory = "")
         {
             System.Diagnostics.Process process = new System.Diagnostics.Process();
