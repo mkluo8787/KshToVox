@@ -168,6 +168,12 @@ namespace KshToVox.window
             updater.DoUpdate();
         }
 
+        private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            AboutForm af = new AboutForm();
+            af.Show();
+        }
+
         #endregion
 
         #region Controller
@@ -285,10 +291,20 @@ namespace KshToVox.window
                     DirectoryInfo di = new DirectoryInfo(path);
                     string newPath = Util.kfcPath + "KshSongs\\" + di.Name;
 
-                    if (Directory.Exists(newPath))
-                        Directory.Delete(newPath, true);
+                    if (!(newPath == path))
+                    {
+                        int hitId = 1;
+                        if (Directory.Exists(newPath))
+                            while (true)                            
+                                if (!Directory.Exists(newPath + hitId++))
+                                {
+                                    newPath = newPath + hitId.ToString();
+                                    break;
+                                }
 
-                    Util.CopyDirectory(path, newPath);
+                        Util.CopyDirectory(path, newPath);
+                    }
+                    
                     newPaths.Add(newPath);
                 }
 
@@ -508,5 +524,6 @@ namespace KshToVox.window
         }
         #endregion
 
+        
     }
 }

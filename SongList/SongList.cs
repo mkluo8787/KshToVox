@@ -407,7 +407,7 @@ namespace SongList
             kshPathToId.Remove(di.FullName);
             songsIdOccupied[id] = false;
 
-            //Directory.Delete(di.FullName, true);
+            Directory.Delete(di.FullName, true);
         }
         public void Add(int id, Song song)
         {
