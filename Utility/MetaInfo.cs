@@ -52,8 +52,8 @@ namespace Utility
 
                 // Parse Used Ids
 
-                string dbPath = Util.kfcPath + "\\data\\others\\music_db.xml";
-                string dbOriPath = Util.kfcPath + "\\data\\others\\music_db_original.xml";
+                string dbPath = Util.kfcPath + "data\\others\\music_db.xml";
+                string dbOriPath = Util.kfcPath + "data\\others\\music_db_original.xml";
 
                 if (!File.Exists(dbOriPath))
                 {
@@ -116,6 +116,16 @@ namespace Utility
                 outXml.Add(types);
 
                 outXml.Save(mataDbPath);
+
+                //==========Create Empty DB==========
+
+                XElement rootDb = new XElement("mdb");
+                XDocument xmlFile = new XDocument(
+                    new XDeclaration("1.0", "shift-jis", "yes"),
+                    rootDb
+                );
+
+                xmlFile.Save(dbPath);
             }
         }
 

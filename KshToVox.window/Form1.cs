@@ -295,12 +295,17 @@ namespace KshToVox.window
                     {
                         int hitId = 1;
                         if (Directory.Exists(newPath))
-                            while (true)                            
-                                if (!Directory.Exists(newPath + hitId++))
+                            while (true)
+                            {
+                                if (!Directory.Exists(newPath + hitId))
                                 {
                                     newPath = newPath + hitId.ToString();
                                     break;
                                 }
+                                else
+                                    hitId++;
+                            }
+                        
 
                         Util.CopyDirectory(path, newPath);
                     }
