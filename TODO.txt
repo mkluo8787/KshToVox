@@ -82,6 +82,10 @@ song save exception
 
  Util: file operation interface
 
- integrate sharpupdate
-
  KshSongs/Song db empty exception
+
+song load exception
+
+prevent view refresh (update view)
+
+FATAL: mp3 -> wav conversion latency
