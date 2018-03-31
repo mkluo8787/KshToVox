@@ -1,9 +1,9 @@
 <sharpUpdate>
   <update appID="KshToVox.window">
-    <version>0.1.2.2</version>
+    <version>0.1.2.3</version>
     <url>https://github.com/MKLUO/KshToVox/raw/master/KshToVox.window/bin/Release/KshToVox.window.exe</url>
     <fileName>KshToVox.window.exe</fileName>
-    <md5>476B02A109717966B19ADB7E406F9B15</md5>
+    <md5>4B65AB149DC92F4A62E1B8FD2E78A11E</md5>
     <launchArgs>
     </launchArgs>
     <description>

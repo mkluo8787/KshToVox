@@ -62,7 +62,7 @@ namespace KshToVox.window
 
             dataGridView1.Columns[0].Width = 30;
             dataGridView1.Columns[1].Width = 45;
-            dataGridView1.Columns[2].Width = 150;
+            dataGridView1.Columns[2].Width = 130;
 
             dataGridView2.DataSource = null;
             dataGridView2.DataSource = Controller.GetPendingSongsInfo();
@@ -185,11 +185,15 @@ namespace KshToVox.window
                 // Check if kfc dll exists.
                 if (!File.Exists(Util.kfcPath + "soundvoltex.dll"))
                     throw new Exception();
-                
+
 
                 // Check if folders exist.
-                if (!Directory.Exists(Util.kfcPath + "KshSongs\\"))
-                    Directory.CreateDirectory(Util.kfcPath + "KshSongs\\");
+                if (!Directory.Exists(Util.GetKshSongFolderPath()))
+                {
+                    Directory.CreateDirectory(Util.GetKshSongFolderPath());
+                    DirectoryInfo di = new DirectoryInfo(Util.GetKshSongFolderPath());
+                    di.Attributes = FileAttributes.Hidden;
+                }
 
                 if (!Directory.Exists(Util.kfcPath + "data\\others\\vox\\"))
                     Directory.CreateDirectory(Util.kfcPath + "data\\others\\vox\\");
@@ -289,7 +293,7 @@ namespace KshToVox.window
                 foreach (string path in paths)
                 {
                     DirectoryInfo di = new DirectoryInfo(path);
-                    string newPath = Util.kfcPath + "KshSongs\\" + di.Name;
+                    string newPath = Util.GetKshSongFolderPath() + di.Name;
 
                     if (!(newPath == path))
                     {

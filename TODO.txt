@@ -9,8 +9,6 @@
 
 Vox versions handle.
 
-End Pos = Last Measure + 2
-
 selfmade & original chart grouping
 
 Exceptions
@@ -66,8 +64,6 @@ song save exception
 
  music preview: remove old files
 
- ClickOnce App deplotment
-
  better caching
 
  Hashing
@@ -81,8 +77,6 @@ song save exception
  show pic in form
 
  Util: file operation interface
-
- KshSongs/Song db empty exception
 
 song load exception
 
