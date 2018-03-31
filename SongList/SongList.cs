@@ -124,8 +124,7 @@ namespace SongList
 
         public void LoadFromKshSongs()
         {
-            string kshFolderPath = Util.kfcPath + "KshSongs\\";
-            DirectoryInfo kshFolder = new DirectoryInfo(kshFolderPath);
+            DirectoryInfo kshFolder = new DirectoryInfo(Util.GetKshSongFolderPath());
 
             List<string> kshPaths = new List<string>();
             foreach (DirectoryInfo kshSong in kshFolder.GetDirectories())

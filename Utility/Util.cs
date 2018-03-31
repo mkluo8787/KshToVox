@@ -120,6 +120,11 @@ namespace Utility
             kfcPath = newPath;
         }
 
+        public static string GetKshSongFolderPath()
+        {
+            return Util.kfcPath + "data\\KshSongs\\";
+        }
+
         public static bool IsValidKshPath(string path)
         {
             DirectoryInfo kshSong = new DirectoryInfo(path);
