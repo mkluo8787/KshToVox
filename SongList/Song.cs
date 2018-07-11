@@ -86,9 +86,10 @@ namespace SongList
             data["kshFolder"] = kshPath;
             data["lastModFolder"] = Directory.GetLastWriteTime(kshPath).ToString();
 
-            // Parsing for Charts
+            bool shift = false;
+            double offset = 0.0;
             foreach (string kshFile in kshFiles)
-			{
+            {
                 // Detect if some object is in 1st Measure (Shift with +1 measure)
                 FileStream fs1 = new FileStream(kshFile, FileMode.Open);
                 (Dictionary<string, string> kshCheckParse, List<string> chartCheck) = ParseKshInfo(fs1);
@@ -96,10 +97,13 @@ namespace SongList
 
                 Chart checkVoxChart = new Chart(chartCheck, kshCheckParse["t"], false);
 
-                bool shift = checkVoxChart.SomethingIsInFirstMeasure();
+                shift = checkVoxChart.SomethingIsInFirstMeasure();
+                offset = checkVoxChart.FirstMesureLength();
+            }
 
-                double offset = checkVoxChart.FirstMesureLength();
-
+            // Parsing for Charts
+            foreach (string kshFile in kshFiles)
+			{
                 FileStream fs2 = new FileStream(kshFile, FileMode.Open);
 				(Dictionary<string, string> kshParse, List<string> chart) = ParseKshInfo(fs2);
 				fs2.Close();
