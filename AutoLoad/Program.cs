@@ -68,8 +68,8 @@ namespace AutoLoad
             }
 
             // Check if folders exist.
-            if (!Directory.Exists(Util.kfcPath + "KshSongs\\"))
-                Directory.CreateDirectory(Util.kfcPath + "KshSongs\\");
+            if (!Directory.Exists(Util.GetKshSongFolderPath()))
+                Directory.CreateDirectory(Util.GetKshSongFolderPath());
 
             if (!Directory.Exists(Util.kfcPath + "data\\others\\vox\\"))
                 Directory.CreateDirectory(Util.kfcPath + "data\\others\\vox\\");

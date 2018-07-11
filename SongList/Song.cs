@@ -97,8 +97,11 @@ namespace SongList
 
                 Chart checkVoxChart = new Chart(chartCheck, kshCheckParse["t"], false);
 
-                shift = checkVoxChart.SomethingIsInFirstMeasure();
-                offset = checkVoxChart.FirstMesureLength();
+                if (!shift)
+                {
+                    shift = checkVoxChart.SomethingIsInFirstMeasure();
+                    offset = checkVoxChart.FirstMesureLength();
+                }
             }
 
             // Parsing for Charts
